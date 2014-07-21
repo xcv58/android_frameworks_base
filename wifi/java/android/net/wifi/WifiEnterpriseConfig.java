@@ -45,7 +45,7 @@ import java.util.Map;
  */
 public class WifiEnterpriseConfig implements Parcelable {
     private static final String TAG = "WifiEnterpriseConfig";
-    private static final boolean DBG = false;
+    private static final boolean DBG = true;
     /**
      * In old configurations, the "private_key" field was used. However, newer
      * configurations use the key_id field with the engine_id set to "keystore".

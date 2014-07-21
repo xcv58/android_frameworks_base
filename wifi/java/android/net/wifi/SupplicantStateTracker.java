@@ -40,7 +40,7 @@ import java.io.PrintWriter;
 class SupplicantStateTracker extends StateMachine {
 
     private static final String TAG = "SupplicantStateTracker";
-    private static final boolean DBG = false;
+    private static final boolean DBG = true;
 
     private WifiStateMachine mWifiStateMachine;
     private WifiConfigStore mWifiConfigStore;

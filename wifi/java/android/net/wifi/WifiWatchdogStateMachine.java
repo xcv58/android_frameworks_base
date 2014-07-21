@@ -75,7 +75,7 @@ import java.text.DecimalFormat;
  */
 public class WifiWatchdogStateMachine extends StateMachine {
 
-    private static final boolean DBG = false;
+    private static final boolean DBG = true;
 
     private static final int BASE = Protocol.BASE_WIFI_WATCHDOG;
 
