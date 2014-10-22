@@ -9,6 +9,7 @@ package android {
     field public static final java.lang.String ACCESS_CHECKIN_PROPERTIES = "android.permission.ACCESS_CHECKIN_PROPERTIES";
     field public static final java.lang.String ACCESS_COARSE_LOCATION = "android.permission.ACCESS_COARSE_LOCATION";
     field public static final java.lang.String ACCESS_FINE_LOCATION = "android.permission.ACCESS_FINE_LOCATION";
+    field public static final java.lang.String ACCESS_JOULER = "android.permission.ACCESS_JOULER";
     field public static final java.lang.String ACCESS_LOCATION_EXTRA_COMMANDS = "android.permission.ACCESS_LOCATION_EXTRA_COMMANDS";
     field public static final java.lang.String ACCESS_MOCK_LOCATION = "android.permission.ACCESS_MOCK_LOCATION";
     field public static final java.lang.String ACCESS_NETWORK_STATE = "android.permission.ACCESS_NETWORK_STATE";
@@ -3083,6 +3084,7 @@ package android.app {
   public class AlarmManager {
     method public void cancel(android.app.PendingIntent);
     method public void set(int, long, android.app.PendingIntent);
+    method public void setAdaptive(int, long, long, long, android.app.PendingIntent);
     method public void setExact(int, long, android.app.PendingIntent);
     method public void setInexactRepeating(int, long, long, android.app.PendingIntent);
     method public void setRepeating(int, long, long, android.app.PendingIntent);
@@ -5989,6 +5991,7 @@ package android.content {
     field public static final java.lang.String DROPBOX_SERVICE = "dropbox";
     field public static final java.lang.String INPUT_METHOD_SERVICE = "input_method";
     field public static final java.lang.String INPUT_SERVICE = "input";
+    field public static final java.lang.String JOULER_SERVICE = "jouler";
     field public static final java.lang.String KEYGUARD_SERVICE = "keyguard";
     field public static final java.lang.String LAYOUT_INFLATER_SERVICE = "layout_inflater";
     field public static final java.lang.String LOCATION_SERVICE = "location";
@@ -6340,6 +6343,7 @@ package android.content {
     field public static final java.lang.String ACTION_DREAMING_STARTED = "android.intent.action.DREAMING_STARTED";
     field public static final java.lang.String ACTION_DREAMING_STOPPED = "android.intent.action.DREAMING_STOPPED";
     field public static final java.lang.String ACTION_EDIT = "android.intent.action.EDIT";
+    field public static final java.lang.String ACTION_ENERGY_ALERT = "android.intent.action.ENERGY_ALERT";
     field public static final java.lang.String ACTION_EXTERNAL_APPLICATIONS_AVAILABLE = "android.intent.action.EXTERNAL_APPLICATIONS_AVAILABLE";
     field public static final java.lang.String ACTION_EXTERNAL_APPLICATIONS_UNAVAILABLE = "android.intent.action.EXTERNAL_APPLICATIONS_UNAVAILABLE";
     field public static final java.lang.String ACTION_FACTORY_TEST = "android.intent.action.FACTORY_TEST";
@@ -6384,6 +6388,7 @@ package android.content {
     field public static final java.lang.String ACTION_PACKAGE_RESTARTED = "android.intent.action.PACKAGE_RESTARTED";
     field public static final java.lang.String ACTION_PACKAGE_VERIFIED = "android.intent.action.PACKAGE_VERIFIED";
     field public static final java.lang.String ACTION_PASTE = "android.intent.action.PASTE";
+    field public static final java.lang.String ACTION_PAUSE_ACTIVITY = "android.intent.action.PAUSE_ACTIVITY";
     field public static final java.lang.String ACTION_PICK = "android.intent.action.PICK";
     field public static final java.lang.String ACTION_PICK_ACTIVITY = "android.intent.action.PICK_ACTIVITY";
     field public static final java.lang.String ACTION_POWER_CONNECTED = "android.intent.action.ACTION_POWER_CONNECTED";
@@ -6392,6 +6397,7 @@ package android.content {
     field public static final java.lang.String ACTION_PROVIDER_CHANGED = "android.intent.action.PROVIDER_CHANGED";
     field public static final java.lang.String ACTION_QUICK_CLOCK = "android.intent.action.QUICK_CLOCK";
     field public static final java.lang.String ACTION_REBOOT = "android.intent.action.REBOOT";
+    field public static final java.lang.String ACTION_RESUME_ACTIVITY = "android.intent.action.RESUME_ACTIVITY";
     field public static final java.lang.String ACTION_RUN = "android.intent.action.RUN";
     field public static final java.lang.String ACTION_SCREEN_OFF = "android.intent.action.SCREEN_OFF";
     field public static final java.lang.String ACTION_SCREEN_ON = "android.intent.action.SCREEN_ON";
@@ -6457,6 +6463,7 @@ package android.content {
     field public static final deprecated java.lang.String EXTRA_ALLOW_REPLACE = "android.intent.extra.ALLOW_REPLACE";
     field public static final java.lang.String EXTRA_ASSIST_CONTEXT = "android.intent.extra.ASSIST_CONTEXT";
     field public static final java.lang.String EXTRA_ASSIST_PACKAGE = "android.intent.extra.ASSIST_PACKAGE";
+    field public static final java.lang.String EXTRA_BAD_PACKAGE_LIST = "android.intent.extra.BAD_PACKAGE_LIST";
     field public static final java.lang.String EXTRA_BCC = "android.intent.extra.BCC";
     field public static final java.lang.String EXTRA_BUG_REPORT = "android.intent.extra.BUG_REPORT";
     field public static final java.lang.String EXTRA_CC = "android.intent.extra.CC";
@@ -6473,6 +6480,7 @@ package android.content {
     field public static final int EXTRA_DOCK_STATE_UNDOCKED = 0; // 0x0
     field public static final java.lang.String EXTRA_DONT_KILL_APP = "android.intent.extra.DONT_KILL_APP";
     field public static final java.lang.String EXTRA_EMAIL = "android.intent.extra.EMAIL";
+    field public static final java.lang.String EXTRA_GOOD_PACKAGE_LIST = "android.intent.extra.GOOD_PACKAGE_LIST";
     field public static final java.lang.String EXTRA_HTML_TEXT = "android.intent.extra.HTML_TEXT";
     field public static final java.lang.String EXTRA_INITIAL_INTENTS = "android.intent.extra.INITIAL_INTENTS";
     field public static final java.lang.String EXTRA_INSTALLER_PACKAGE_NAME = "android.intent.extra.INSTALLER_PACKAGE_NAME";
@@ -6481,6 +6489,7 @@ package android.content {
     field public static final java.lang.String EXTRA_LOCAL_ONLY = "android.intent.extra.LOCAL_ONLY";
     field public static final java.lang.String EXTRA_MIME_TYPES = "android.intent.extra.MIME_TYPES";
     field public static final java.lang.String EXTRA_NOT_UNKNOWN_SOURCE = "android.intent.extra.NOT_UNKNOWN_SOURCE";
+    field public static final java.lang.String EXTRA_OKAY_PACKAGE_LIST = "android.intent.extra.OKAY_PACKAGE_LIST";
     field public static final java.lang.String EXTRA_ORIGINATING_URI = "android.intent.extra.ORIGINATING_URI";
     field public static final java.lang.String EXTRA_PHONE_NUMBER = "android.intent.extra.PHONE_NUMBER";
     field public static final java.lang.String EXTRA_REFERRER = "android.intent.extra.REFERRER";
@@ -17856,6 +17865,95 @@ package android.os {
     method public abstract android.os.IBinder asBinder();
   }
 
+  public class JoulerPolicy {
+    method public void broadcastAlertIntent(java.util.List<java.lang.String>, java.util.List<java.lang.String>, java.util.List<java.lang.String>);
+    method public void controlCpuMaxFrequency(int);
+    method public byte[] getStatistics() throws android.os.RemoteException;
+    method public void rateLimitForUid(int);
+    method public void resetPriority(int, int);
+    method public void setScreenBrightness(int);
+  }
+
+  public final class JoulerStats implements android.os.Parcelable {
+    ctor public JoulerStats(android.os.Parcel);
+    ctor public JoulerStats();
+    method public int describeContents();
+    method public java.lang.String formatElapsedTime(double);
+    method public void readFromParcel(android.os.Parcel);
+    method public void writeToParcel(android.os.Parcel, int);
+    field public static final android.os.Parcelable.Creator CREATOR;
+    field public static final java.lang.String TAG = "JoulerStats";
+    field public final android.os.JoulerStats.SystemStats mSystemStats;
+    field public final android.util.SparseArray mUidArray;
+  }
+
+  public final class JoulerStats.SystemStats {
+    ctor public JoulerStats.SystemStats();
+    method public void clear();
+    method public double getBluetoothEnergy();
+    method public float getCurrentBgDischargeRate();
+    method public float getCurrentDischargeRate();
+    method public float getCurrentFgDischargeRate();
+    method public double getIdleEnergy();
+    method public double getPhoneEnergy();
+    method public double getRadioEnergy();
+    method public double getScreenEnergy();
+    method public long getTotalScreenOffTime();
+    method public long getTotalScreenOnTime();
+    method public double getWifiEnergy();
+    method public void readFromParcel(android.os.Parcel);
+    method public void resetOnCharge();
+    method public void updateBackgroundDischargeRate(int);
+    method public double updateEnergy(double, double, double, double, double, double);
+    method public void updateForegroundDischargeRate(int);
+    method public void updateScreenTime(long, int);
+    method public void updateTotalDischargeRate(int);
+    method public void updateUpTime(long);
+    method public void writeToParcel(android.os.Parcel);
+  }
+
+  public final class JoulerStats.UidStats {
+    ctor public JoulerStats.UidStats(int);
+    method public void addBgServices(java.lang.String);
+    method public void addFgServices(java.lang.String);
+    method public double getAudioEnergy();
+    method public double getBgEnergy();
+    method public int getCount();
+    method public double getCpuEnergy();
+    method public double getFgEnergy();
+    method public long getFrame();
+    method public double getMobileDataEnergy();
+    method public double getSensorEnergy();
+    method public boolean getState();
+    method public boolean getThrottle();
+    method public int getUid();
+    method public long getUsageTime();
+    method public double getVideoEnergy();
+    method public double getWakelockEnergy();
+    method public double getWifiDataEnergy();
+    method public double getWifiEnergy();
+    method public void readFromParcel(android.os.Parcel);
+    method public void removeBgServices(java.lang.String);
+    method public void removeFgServices(java.lang.String);
+    method public void reset();
+    method public void resetCount();
+    method public void resetEnergy();
+    method public void resetTime();
+    method public void setCount(int);
+    method public void setFrame(long);
+    method public void setState(boolean);
+    method public void setThrottle(boolean);
+    method public void setUsageTime(long);
+    method public void updateBgEnergy(double);
+    method public void updateCommonEnergy(double);
+    method public double updateEnergy(double, double, double, double, double, double, double, double);
+    method public void updateFgEnergy(double);
+    method public void writeToParcel(android.os.Parcel);
+    field public java.lang.String packageName;
+    field public boolean state;
+    field public long uiActivity;
+  }
+
   public final class Looper {
     method public void dump(android.util.Printer, java.lang.String);
     method public static android.os.Looper getMainLooper();
@@ -21790,7 +21888,7 @@ package android.renderscript {
   }
 
   public class BaseObj {
-    method public synchronized void destroy();
+    method public void destroy();
     method public java.lang.String getName();
     method public void setName(java.lang.String);
   }
