@@ -555,7 +555,9 @@ public class JoulerPolicyService extends IJoulerPolicy.Stub {
 		mContext = context;
 		IntentFilter intent = new IntentFilter();
 		intent.addAction(Intent.ACTION_BATTERY_CHANGED);
-		intent.addAction("jouler.update.inputs");
+		//intent.addAction("jouler.update.inputs");
+		intent.addAction(Intent.ACTION_RESUME_ACTIVITY);
+		intent.addAction(Intent.ACTION_PAUSE_ACTIVITY);
 		mContext.registerReceiver(updateReceiver, intent);
 		mConnector = new NativeDaemonConnector(
                 new NetdCallbackReceiver(), "netd", 10, NETD_TAG, 160);
@@ -736,6 +738,8 @@ public class JoulerPolicyService extends IJoulerPolicy.Stub {
 				Log.i(TAG,"stop Fg monitor: "+u.packageName+" uid= "+u.getUid()+" frames rendered: "+u.getFrame());
 			}
 		}
+		printSys();
+		printUid();
 	}
 	
 	public long getMeMyFrameCount(String packageName){
