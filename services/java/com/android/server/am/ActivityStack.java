@@ -778,7 +778,7 @@ final class ActivityStack {
                                 Log.e("JoulerDebug","Pausing: usageStats is null, wtf s happening?? "+prev.realActivity.getPackageName());
                         }
                         joulerObj.stopFgMonitor(prev.app.uid);
-                        Log.i("JoulerDebug","Pausing:"+prev.packageName);
+                        //Log.i("JoulerDebug","Pausing:"+prev.packageName);
 
                 } catch(Exception e) {
                         Log.e("JoulerDebug","Error at pausing: "+e.getMessage());
@@ -1618,7 +1618,7 @@ final class ActivityStack {
                 try {
                      JoulerPolicyService joulerObj = (JoulerPolicyService) ServiceManager.getService("jouler");
                      joulerObj.startFgMonitor(next.app.uid);
-                     Log.i("JoulerMonitor","Resuming "+next.packageName);
+                     //Log.i("JoulerDebug","Resuming "+next.packageName);
 		 }catch (Exception e) {
                      Log.e("JoulerDebug", "***Inside Activity Stack: on Resuming for "+ next.packageName+ " "+e.getMessage());
                 }

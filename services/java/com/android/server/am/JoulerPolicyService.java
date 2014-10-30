@@ -131,14 +131,6 @@ public class JoulerPolicyService extends IJoulerPolicy.Stub {
 		return power;
 	}
 	
-/*	double getDataTrafficEnergy(Uid u, double averageCostPerByte){
-		double power = 0;
-		long tcpBytesReceived = u.getTcpBytesReceived(which);
-        long tcpBytesSent = u.getTcpBytesSent(which);
-        power = (tcpBytesReceived+tcpBytesSent) * averageCostPerByte;
-        return power;
-	}
-*/
 
 	double getMobileTrafficEnergy(BatteryStatsImpl mStats, Uid u, PowerProfile mPowerProfile){
                 double power = 0;
@@ -287,97 +279,76 @@ public class JoulerPolicyService extends IJoulerPolicy.Stub {
 	//Compute Energy Consumption by System
 	public double getScreenEnergy(BatteryStatsImpl mStats, long uSecNow, PowerProfile mPowerProfile){
 		double power = 0;
-        long screenOnTimeMs = mStats.getScreenOnTime(uSecNow, BatteryStats.STATS_SINCE_CHARGED) / 1000;
-        power += screenOnTimeMs * mPowerProfile.getAveragePower(PowerProfile.POWER_SCREEN_ON);
-        final double screenFullPower =
+        	long screenOnTimeMs = mStats.getScreenOnTime(uSecNow, BatteryStats.STATS_SINCE_CHARGED) / 1000;
+        	power += screenOnTimeMs * mPowerProfile.getAveragePower(PowerProfile.POWER_SCREEN_ON);
+        	final double screenFullPower =
                 mPowerProfile.getAveragePower(PowerProfile.POWER_SCREEN_FULL);
-        for (int i = 0; i < BatteryStats.NUM_SCREEN_BRIGHTNESS_BINS; i++) {
-            double screenBinPower = screenFullPower * (i + 0.5f)
-                    / BatteryStats.NUM_SCREEN_BRIGHTNESS_BINS;
-            long brightnessTime = mStats.getScreenBrightnessTime(i, uSecNow, BatteryStats.STATS_SINCE_CHARGED) / 1000;
-            power += screenBinPower * brightnessTime;
-        }
-        power /= 1000;
+        	for (int i = 0; i < BatteryStats.NUM_SCREEN_BRIGHTNESS_BINS; i++) {
+            		double screenBinPower = screenFullPower * (i + 0.5f)
+                    				/ BatteryStats.NUM_SCREEN_BRIGHTNESS_BINS;
+            		long brightnessTime = mStats.getScreenBrightnessTime(i, uSecNow, BatteryStats.STATS_SINCE_CHARGED) / 1000;
+            		power += screenBinPower * brightnessTime;
+        	}
+        	power /= 1000;
         return power;
 	}
 	
 	public double getPhoneEnergy(BatteryStatsImpl mStats, long uSecNow, PowerProfile mPowerProfile){
 		long phoneOnTimeMs = mStats.getPhoneOnTime(uSecNow, BatteryStats.STATS_SINCE_CHARGED) / 1000;
-        double phoneEnergy = mPowerProfile.getAveragePower(PowerProfile.POWER_RADIO_ACTIVE)
-                * phoneOnTimeMs / 1000;
-        return phoneEnergy;
+       		double phoneEnergy = mPowerProfile.getAveragePower(PowerProfile.POWER_RADIO_ACTIVE)
+                			* phoneOnTimeMs / 1000;
+        	return phoneEnergy;
 	}
 	
 	public double getWifiEnergy(BatteryStatsImpl mStats, long uSecNow, PowerProfile mPowerProfile){
 		double power = 0;
 		long onTimeMs = mStats.getWifiOnTime(uSecNow, BatteryStats.STATS_SINCE_CHARGED) / 1000;
-        long runningTimeMs = mStats.getGlobalWifiRunningTime(uSecNow, BatteryStats.STATS_SINCE_CHARGED) / 1000;
-        power = (onTimeMs * 0 /* TODO */
-                * mPowerProfile.getAveragePower(PowerProfile.POWER_WIFI_ON)
-            + runningTimeMs * mPowerProfile.getAveragePower(PowerProfile.POWER_WIFI_ON)) / 1000;
-        return power;
+        	long runningTimeMs = mStats.getGlobalWifiRunningTime(uSecNow, BatteryStats.STATS_SINCE_CHARGED) / 1000;
+        	power = (onTimeMs * 0 /* TODO */
+                	* mPowerProfile.getAveragePower(PowerProfile.POWER_WIFI_ON)
+            		+ runningTimeMs * mPowerProfile.getAveragePower(PowerProfile.POWER_WIFI_ON)) / 1000;
+        	return power;
 	}
 	
 	public double getRadioEnergy(BatteryStatsImpl mStats, long uSecNow, PowerProfile mPowerProfile){
 		double power = 0;
-        final int BINS = SignalStrength.NUM_SIGNAL_STRENGTH_BINS;
-        for (int i = 0; i < BINS; i++) {
-            long strengthTimeMs = mStats.getPhoneSignalStrengthTime(i, uSecNow,BatteryStats.STATS_SINCE_CHARGED) / 1000;
-            power += strengthTimeMs / 1000
-                    * mPowerProfile.getAveragePower(PowerProfile.POWER_RADIO_ON, i);
-        }
-        long scanningTimeMs = mStats.getPhoneSignalScanningTime(uSecNow, BatteryStats.STATS_SINCE_CHARGED) / 1000;
-        power += scanningTimeMs / 1000 * mPowerProfile.getAveragePower(
+        	final int BINS = SignalStrength.NUM_SIGNAL_STRENGTH_BINS;
+        	for (int i = 0; i < BINS; i++) {
+            		long strengthTimeMs = mStats.getPhoneSignalStrengthTime(i, uSecNow,BatteryStats.STATS_SINCE_CHARGED) / 1000;
+            		power += strengthTimeMs / 1000
+                    		* mPowerProfile.getAveragePower(PowerProfile.POWER_RADIO_ON, i);
+        	}
+        	long scanningTimeMs = mStats.getPhoneSignalScanningTime(uSecNow, BatteryStats.STATS_SINCE_CHARGED) / 1000;
+        	power += scanningTimeMs / 1000 * mPowerProfile.getAveragePower(
                 PowerProfile.POWER_RADIO_SCANNING);
-        return power;
+        	return power;
 	}
 	
 	public double getIdleEnergy(BatteryStatsImpl mStats, long uSecNow, PowerProfile mPowerProfile){
 		double power = 0;
 		long idleTimeMs = (uSecNow - mStats.getScreenOnTime(uSecNow, BatteryStats.STATS_SINCE_CHARGED)) / 1000;
-        power = (idleTimeMs * mPowerProfile.getAveragePower(PowerProfile.POWER_CPU_IDLE))
-                / 1000;
-        return power;
+        	power = (idleTimeMs * mPowerProfile.getAveragePower(PowerProfile.POWER_CPU_IDLE))
+                	/ 1000;
+        	return power;
 	}
 	
 	public double getBluetoothEnergy(BatteryStatsImpl mStats, long uSecNow, PowerProfile mPowerProfile){
 		long btOnTimeMs = mStats.getBluetoothOnTime(uSecNow, BatteryStats.STATS_SINCE_CHARGED) / 1000;
-        double btPower = btOnTimeMs * mPowerProfile.getAveragePower(PowerProfile.POWER_BLUETOOTH_ON)
-                / 1000;
-        int btPingCount = mStats.getBluetoothPingCount();
-        btPower += (btPingCount
-                * mPowerProfile.getAveragePower(PowerProfile.POWER_BLUETOOTH_AT_CMD)) / 1000;
-        return btPower;
+        	double btPower = btOnTimeMs * mPowerProfile.getAveragePower(PowerProfile.POWER_BLUETOOTH_ON)
+                		/ 1000;
+        	int btPingCount = mStats.getBluetoothPingCount();
+        	btPower += (btPingCount
+                	* mPowerProfile.getAveragePower(PowerProfile.POWER_BLUETOOTH_AT_CMD)) / 1000;
+        	return btPower;
 	}
 	
-/*	public double getAverageDataCost(BatteryStatsImpl mStats, PowerProfile mPowerProfile)
-	   {
-	      final long WIFI_BPS = 1000000; // TODO: Extract average bit rates from system 
-	      final long MOBILE_BPS = 200000; // TODO: Extract average bit rates from system
-	      final double WIFI_POWER = mPowerProfile.getAveragePower(PowerProfile.POWER_WIFI_ACTIVE) / 3600;
-	      final double MOBILE_POWER = mPowerProfile.getAveragePower(PowerProfile.POWER_RADIO_ACTIVE) / 3600;
-	      final long mobileData = mStats.getMobileTcpBytesReceived(BatteryStats.STATS_SINCE_CHARGED) + mStats.getMobileTcpBytesSent(BatteryStats.STATS_SINCE_CHARGED);
-	      final long wifiData = mStats.getTotalTcpBytesReceived(BatteryStats.STATS_SINCE_CHARGED) + mStats.getTotalTcpBytesSent(BatteryStats.STATS_SINCE_CHARGED) - mobileData;
-	      final long radioDataUptimeMs = mStats.getRadioDataUptime() / 1000;
-	      final long mobileBps = radioDataUptimeMs != 0 ? mobileData * 8 * 1000 / radioDataUptimeMs : MOBILE_BPS;
-
-	      double mobileCostPerByte = MOBILE_POWER / (mobileBps / 8);
-	      double wifiCostPerByte = WIFI_POWER / (WIFI_BPS / 8);
-	      if (wifiData + mobileData != 0) {
-	         return (mobileCostPerByte * mobileData + wifiCostPerByte * wifiData) / (mobileData + wifiData);
-	      } else {
-	          return 0;
-	      }
-	   }
-*/
 
     /**
      * Return estimated power (in mAs) of sending a byte with the mobile radio.
      */
 	private double getMobilePowerPerByte(BatteryStatsImpl mStats, PowerProfile mPowerProfile) {
         	final long MOBILE_BPS = 200000; // TODO: Extract average bit rates from system
-        	final double MOBILE_POWER = mPowerProfile.getAveragePower(PowerProfile.POWER_RADIO_ACTIVE)
-                	/ 3600;
+        	final double MOBILE_POWER = mPowerProfile.getAveragePower(PowerProfile.POWER_RADIO_ACTIVE)/ 3600;
 
         	final long mobileRx = mStats.getNetworkActivityCount(NETWORK_MOBILE_RX_BYTES, BatteryStats.STATS_SINCE_CHARGED);
         	final long mobileTx = mStats.getNetworkActivityCount(NETWORK_MOBILE_TX_BYTES, BatteryStats.STATS_SINCE_CHARGED);
@@ -385,27 +356,25 @@ public class JoulerPolicyService extends IJoulerPolicy.Stub {
 
         	final long radioDataUptimeMs = mStats.getRadioDataUptime() / 1000;
         	final long mobileBps = radioDataUptimeMs != 0
-                	? mobileData * 8 * 1000 / radioDataUptimeMs
-                	: MOBILE_BPS;
+                		? mobileData * 8 * 1000 / radioDataUptimeMs
+                		: MOBILE_BPS;
 
         	return MOBILE_POWER / (mobileBps / 8);
-    }
+    	}
 
     /**
      * Return estimated power (in mAs) of sending a byte with the Wi-Fi radio.
      */
 	private double getWifiPowerPerByte(PowerProfile mPowerProfile) {
         	final long WIFI_BPS = 1000000; // TODO: Extract average bit rates from system
-        	final double WIFI_POWER = mPowerProfile.getAveragePower(PowerProfile.POWER_WIFI_ACTIVE)
-                	/ 3600;
+        	final double WIFI_POWER = mPowerProfile.getAveragePower(PowerProfile.POWER_WIFI_ACTIVE)	/ 3600;
         	return WIFI_POWER / (WIFI_BPS / 8);
     	}
 
 	
 	//Update generic battery discharge info
 	public long getUpTime(BatteryStatsImpl mStats) {
-		long uSec = mStats.computeBatteryRealtime(SystemClock.elapsedRealtime() * 1000,
-                BatteryStats.STATS_SINCE_CHARGED);
+		long uSec = mStats.computeBatteryRealtime(SystemClock.elapsedRealtime() * 1000, BatteryStats.STATS_SINCE_CHARGED);
 		return mStats.getBatteryRealtime(uSec);
 	}
 	
@@ -486,7 +455,7 @@ public class JoulerPolicyService extends IJoulerPolicy.Stub {
 			//double averageCostPerByte = getAverageDataCost(mStats, mPowerProfile);
 			long uSecTime = mStats.computeBatteryRealtime(SystemClock.elapsedRealtime() * 1000, BatteryStats.STATS_SINCE_CHARGED);
 			PackageManager pm = mContext.getPackageManager();
-	        List<ApplicationInfo> packages = pm.getInstalledApplications(PackageManager.GET_META_DATA);
+	        	List<ApplicationInfo> packages = pm.getInstalledApplications(PackageManager.GET_META_DATA);
 	        
 			SparseArray<? extends Uid> uidStats = mStats.getUidStats();
 			
@@ -578,85 +547,32 @@ public class JoulerPolicyService extends IJoulerPolicy.Stub {
 		prepareNativeDaemon();
 		PendingIntent pIntent = PendingIntent.getBroadcast(mContext, 0, new Intent("jouler.update.inputs"), PendingIntent.FLAG_UPDATE_CURRENT);
 		alarmMgr = (AlarmManager) mContext.getSystemService(Context.ALARM_SERVICE);
-        alarmMgr.setInexactRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP,
-                60000,
-                180000, pIntent);
+        	alarmMgr.setInexactRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP,
+                		60000, 180000, pIntent);
       /*  alarmMgr.setInexactRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP,
                 360000,
                 180000, pIntent);
         */
      
-        bandwidthRules();
+        	bandwidthRules();
 	}
 	 
 	
 	public void updateLaunchForPkg(String pkg, int count, long uTime){
 		PackageManager pm = mContext.getPackageManager();
-        List<ApplicationInfo> packages = pm.getInstalledApplications(PackageManager.GET_META_DATA);
-        for (ApplicationInfo packageInfo : packages) {
-        	if(packageInfo.packageName.equals(pkg)) {
-        		UidStats u = joulerStats.mUidArray.get(packageInfo.uid);
-        		u.setCount(count);
-        		u.setUsageTime(uTime);
-        		Log.i(TAG,"Successfully updated "+u.getCount()+" launches and "+u.getUsageTime()+" usage time");
-        		break;
+        	List<ApplicationInfo> packages = pm.getInstalledApplications(PackageManager.GET_META_DATA);
+        	for (ApplicationInfo packageInfo : packages) {
+        		if(packageInfo.packageName.equals(pkg)) {
+        			UidStats u = joulerStats.mUidArray.get(packageInfo.uid);
+        			u.setCount(count);
+        			u.setUsageTime(uTime);
+        			Log.i(TAG,"Successfully updated "+u.getCount()+" launches and "+u.getUsageTime()+" usage time");
+        			break;
+        		}
         	}
-        }
        
 	}
 	
-	
-	public void addBackgroundServices(String pkg, String className) {
-		PackageManager pm = mContext.getPackageManager();
-        List<ApplicationInfo> packages = pm.getInstalledApplications(PackageManager.GET_META_DATA);
-        for (ApplicationInfo packageInfo : packages) {
-        	if(packageInfo.packageName == pkg) {
-        		UidStats u = joulerStats.mUidArray.get(packageInfo.uid);
-        		u.addBgServices(className);
-        		break;
-        	}
-        }
-        //Log.i(TAG,"updating bg services: "+className);
-	}
-	
-	public void removeBackgroundServices(String pkg, String className) {
-		PackageManager pm = mContext.getPackageManager();
-        List<ApplicationInfo> packages = pm.getInstalledApplications(PackageManager.GET_META_DATA);
-        for (ApplicationInfo packageInfo : packages) {
-        	if(packageInfo.packageName.equals(pkg)) {
-        		UidStats u = joulerStats.mUidArray.get(packageInfo.uid);
-        		u.removeBgServices(className);
-        		break;
-        	}
-        }
-	}
-	
-	public void addForegroundServices(String pkg, String className) {
-		PackageManager pm = mContext.getPackageManager();
-        List<ApplicationInfo> packages = pm.getInstalledApplications(PackageManager.GET_META_DATA);
-        for (ApplicationInfo packageInfo : packages) {
-        	if(packageInfo.packageName.contains(pkg)) {
-        		UidStats u = joulerStats.mUidArray.get(packageInfo.uid);
-        		u.addFgServices(className);
-        		break;
-        	}
-        }
-        //Log.i(TAG,"updating bg services: "+className);
-		
-	}	
-		
-	public void removeForegroundServices(String pkg, String className) {
-		PackageManager pm = mContext.getPackageManager();
-        List<ApplicationInfo> packages = pm.getInstalledApplications(PackageManager.GET_META_DATA);
-        for (ApplicationInfo packageInfo : packages) {
-        	if(packageInfo.packageName.contains(pkg)) {
-        		UidStats u = joulerStats.mUidArray.get(packageInfo.uid);
-        		u.removeFgServices(className);
-        		u.addBgServices(className);
-        		break;
-        	}
-        }
-	}
 	
 	public void startFgMonitor(int appId) {
 		BatteryStatsImpl mStats = ActivityManagerService.self().mBatteryStatsService.getActiveStatistics();
@@ -666,15 +582,15 @@ public class JoulerPolicyService extends IJoulerPolicy.Stub {
 			//double averageCostPerByte = getAverageDataCost(mStats, mPowerProfile);
 			long uSecTime = mStats.computeBatteryRealtime(SystemClock.elapsedRealtime() * 1000, BatteryStats.STATS_SINCE_CHARGED);
 			PackageManager pm = mContext.getPackageManager();
-	        List<ApplicationInfo> packages = pm.getInstalledApplications(PackageManager.GET_META_DATA);
+	        	List<ApplicationInfo> packages = pm.getInstalledApplications(PackageManager.GET_META_DATA);
 			if (joulerStats.mUidArray.indexOfKey(appId) < 0) {
 				UidStats u = joulerStats.new UidStats(appId);
 				for (ApplicationInfo packageInfo : packages) {
-    				if(packageInfo.uid == appId){
-    					u.packageName = packageInfo.packageName;
-    					break;
+    					if(packageInfo.uid == appId){
+    						u.packageName = packageInfo.packageName;
+    						break;
+    					}
     				}
-    			}
 			    joulerStats.mUidArray.append(appId, u);
 			    
 			}  
@@ -725,6 +641,7 @@ public class JoulerPolicyService extends IJoulerPolicy.Stub {
 				double sensor = getSensorEnergy(mUid, uSecTime, mPowerProfile, mContext);
 				double power = u.updateEnergy(cpu, wakelock, mobileData, wifiData, wifi, sensor, video, audio);
 				u.updateFgEnergy(power);
+				Log.i("JoulerDebug", "Fg Energy: "+ power+" Updated: "+u.getFgEnergy());
 				u.updateCommonEnergy(power);
 				u.setState(false);
 				joulerStats.mUidArray.put(appId, u);
