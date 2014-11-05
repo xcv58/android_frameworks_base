@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.StringTokenizer;
 import java.util.concurrent.CountDownLatch;
+import java.util.Calendar;
 
 import com.android.internal.app.IBatteryStats;
 import com.android.internal.os.BatteryStatsImpl;
@@ -80,6 +81,15 @@ public class JoulerPolicyService extends IJoulerPolicy.Stub {
 
     private Thread mThread;
     private CountDownLatch mConnectedSignal = new CountDownLatch(1);
+
+
+    private ArrayList<String> badPkgs;
+    private ArrayList<String> okayPkgs;
+    private ArrayList<String> goodPkgs;
+
+    private final static int GOOD_DELAY_TIME = 0;
+    private final static int OKAY_DELAY_RATIO = 2;
+    private final static int BAD_DELAY_RATIO = 1;
     
     class NetdResponseCode {
         /* Keep in sync with system/netd/ResponseCode.h */
@@ -806,9 +816,9 @@ public class JoulerPolicyService extends IJoulerPolicy.Stub {
 	//@Override
 	public void broadcastAlertIntent(List<String> badPackages, List<String> okayPackages, List<String> goodPackages)
 			throws RemoteException {
-		ArrayList<String> badPkgs = (ArrayList<String>) badPackages;
-		ArrayList<String> okayPkgs = (ArrayList<String>) okayPackages;
-		ArrayList<String> goodPkgs = (ArrayList<String>) goodPackages;
+		badPkgs = (ArrayList<String>) badPackages;
+		okayPkgs = (ArrayList<String>) okayPackages;
+		goodPkgs = (ArrayList<String>) goodPackages;
 		Intent intent = new Intent(Intent.ACTION_ENERGY_ALERT);
 		intent.putExtra("EXTRA_BAD_PACKAGE_LIST", badPkgs);
 		intent.putExtra("EXTRA_OKAY_PACKAGE_LIST", okayPkgs);
@@ -817,7 +827,39 @@ public class JoulerPolicyService extends IJoulerPolicy.Stub {
 		mContext.sendStickyBroadcastAsUser(intent, UserHandle.OWNER);
 		
 	}
-	
+
+ 	public void setDelayedTask(PendingIntent pendingIntent, int maxDelayedTime) throws RemoteException {
+	    AlarmManager am = (AlarmManager) mContext.getSystemService(Context.ALARM_SERVICE);
+	    Calendar time = Calendar.getInstance();
+	    time.setTimeInMillis(System.currentTimeMillis());
+	    String packageName =  pendingIntent.getCreatorPackage();
+	    int delayedTime = this.getProperDelay(packageName, maxDelayedTime);
+	    time.add(Calendar.SECOND, delayedTime);
+	    am.set(AlarmManager.RTC_WAKEUP, time.getTimeInMillis(), pendingIntent);
+	}
+
+	private int getProperDelay(String packageName, int maxDelayedTime) {
+		if (this.contains(goodPkgs, packageName)) {
+		    return GOOD_DELAY_TIME;
+		}
+		if (this.contains(okayPkgs, packageName)) {
+		    return maxDelayedTime / OKAY_DELAY_RATIO;
+		}
+		if (this.contains(badPkgs, packageName)) {
+		    return maxDelayedTime / BAD_DELAY_RATIO;
+		}
+		return maxDelayedTime / BAD_DELAY_RATIO;
+	}
+
+	private boolean contains(ArrayList<String> pkgs, String packageName) {
+		for (String tmpPkgName : pkgs) {
+		    if (tmpPkgName.contains(packageName) || packageName.contains(tmpPkgName)) {
+			return true;
+		    }
+		}
+		return false;
+	}
+
 	//@Override
 	public void resetPriority(int uid, int priority){
 		String userName;

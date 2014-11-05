@@ -7,6 +7,7 @@ import android.content.Context;
 import android.telephony.SignalStrength;
 import android.util.Log;
 import android.util.SparseArray;
+import android.app.PendingIntent;
 
 /**
  * This class provides access to jouler policy services. This allow you to 
@@ -70,7 +71,13 @@ public class JoulerPolicy
 
     }
 
-    
+    public void setDelayedTask(PendingIntent pendingIntent, int maxDelayedTime) {
+        try {
+            mService.setDelayedTask(pendingIntent, maxDelayedTime);
+        } catch (RemoteException ex) {
+        }
+
+    }
 
 
 }

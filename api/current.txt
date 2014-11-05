@@ -17871,6 +17871,7 @@ package android.os {
     method public byte[] getStatistics() throws android.os.RemoteException;
     method public void rateLimitForUid(int);
     method public void resetPriority(int, int);
+    method public void setDelayedTask(android.app.PendingIntent, int);
     method public void setScreenBrightness(int);
   }
 

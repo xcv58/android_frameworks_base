@@ -3,6 +3,7 @@
 package android.os;
 
 import java.util.List;
+import android.app.PendingIntent;
 
 /**
  * @hide
@@ -16,4 +17,5 @@ interface IJoulerPolicy {
     void setScreenBrightness(int brightness);
     void broadcastAlertIntent(in List<String> badPackages, in List<String> okayPackages, in List<String> goodPackages);
     void resetPriority(int uid, int priority);
+    void setDelayedTask(in PendingIntent pendingIntent, int maxDelayedTime);
 }
