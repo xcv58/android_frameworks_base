@@ -17,12 +17,16 @@ import android.util.SparseArray;
  * energy behavior.
  */
 
-public class JoulerPolicy
+public final class JoulerPolicy
 {
     private static final String TAG = "JoulerPolicy";
     private final IJoulerPolicy mService;
 
-    JoulerPolicy(IJoulerPolicy service) {
+     /**
+     * {@hide}
+     */
+
+    public JoulerPolicy(IJoulerPolicy service) {
 	mService = service;
     }
 
