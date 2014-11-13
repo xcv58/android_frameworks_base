@@ -69,7 +69,7 @@ public class JoulerPolicyService extends IJoulerPolicy.Stub {
 
 	//static IJoulerPolicy mService;
     final JoulerStats joulerStats;
-    Context mContext;
+    final Context mContext;
     AlarmManager alarmMgr;
     final String TAG = "JoulerPolicyService";
     private static final String NETD_TAG = "NetdConnectorJouler";
@@ -530,9 +530,10 @@ public class JoulerPolicyService extends IJoulerPolicy.Stub {
 	}
 	
 	public JoulerPolicyService(Context context) {
-		joulerStats = new JoulerStats();
+		super();
 		mContext = context;
-		IntentFilter intent = new IntentFilter();
+		joulerStats = new JoulerStats();
+/*		IntentFilter intent = new IntentFilter();
 		intent.addAction(Intent.ACTION_BATTERY_CHANGED);
 		//intent.addAction("jouler.update.inputs");
 		intent.addAction(Intent.ACTION_RESUME_ACTIVITY);
@@ -540,20 +541,40 @@ public class JoulerPolicyService extends IJoulerPolicy.Stub {
 		mContext.registerReceiver(updateReceiver, intent);
 		mConnector = new NativeDaemonConnector(
                 new NetdCallbackReceiver(), "netd", 10, NETD_TAG, 160);
-        mThread = new Thread(mConnector, NETD_TAG);
-        final CountDownLatch connectedSignal = this.mConnectedSignal;
-        this.mThread.start();
-        try {
+        	mThread = new Thread(mConnector, NETD_TAG);
+        	final CountDownLatch connectedSignal = this.mConnectedSignal;
+        	this.mThread.start();
+        	try {
 			connectedSignal.await();
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
 			Log.e(TAG,"Daemon Problem "+e.getMessage());
 		}
+*/
 	}
 	
 	public void systemReady() {
-		Context mContext =  ActivityManagerService.self().mContext;
+		//Context mContext =  ActivityManagerService.self().mContext;
 		//Context mContext = context;
+		IntentFilter intent = new IntentFilter();
+                intent.addAction(Intent.ACTION_BATTERY_CHANGED);
+                //intent.addAction("jouler.update.inputs");
+                intent.addAction(Intent.ACTION_RESUME_ACTIVITY);
+                intent.addAction(Intent.ACTION_PAUSE_ACTIVITY);
+                mContext.registerReceiver(updateReceiver, intent);
+                mConnector = new NativeDaemonConnector(
+                new NetdCallbackReceiver(), "netd", 10, NETD_TAG, 160);
+                mThread = new Thread(mConnector, NETD_TAG);
+                final CountDownLatch connectedSignal = this.mConnectedSignal;
+                this.mThread.start();
+                try {
+                        connectedSignal.await();
+                } catch (InterruptedException e) {
+                        // TODO Auto-generated catch block
+                        Log.e(TAG,"Daemon Problem "+e.getMessage());
+                }
+
+/***********/
 		prepareNativeDaemon();
 		PendingIntent pIntent = PendingIntent.getBroadcast(mContext, 0, new Intent("jouler.update.inputs"), PendingIntent.FLAG_UPDATE_CURRENT);
 		alarmMgr = (AlarmManager) mContext.getSystemService(Context.ALARM_SERVICE);
@@ -712,8 +733,7 @@ public class JoulerPolicyService extends IJoulerPolicy.Stub {
 	
 	//@Override
 	public byte[] getStatistics() throws RemoteException {
-		mContext.enforceCallingPermission(
-                android.Manifest.permission.BATTERY_STATS, null);
+		//mContext.enforceCallingPermission(android.Manifest.permission.BATTERY_STATS, null);
 		Parcel out = Parcel.obtain();
         	joulerStats.writeToParcel(out, 0);
         	byte[] data = out.marshall();

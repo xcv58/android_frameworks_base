@@ -18,12 +18,16 @@ import android.app.PendingIntent;
  * energy behavior.
  */
 
-public class JoulerPolicy
+public final class JoulerPolicy
 {
     private static final String TAG = "JoulerPolicy";
     private final IJoulerPolicy mService;
 
-    JoulerPolicy(IJoulerPolicy service) {
+     /**
+     * {@hide}
+     */
+
+    public JoulerPolicy(IJoulerPolicy service) {
 	mService = service;
     }
 

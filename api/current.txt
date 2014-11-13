@@ -17865,7 +17865,7 @@ package android.os {
     method public abstract android.os.IBinder asBinder();
   }
 
-  public class JoulerPolicy {
+  public final class JoulerPolicy {
     method public void broadcastAlertIntent(java.util.List<java.lang.String>, java.util.List<java.lang.String>, java.util.List<java.lang.String>);
     method public void controlCpuMaxFrequency(int);
     method public byte[] getStatistics() throws android.os.RemoteException;
