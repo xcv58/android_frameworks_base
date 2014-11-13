@@ -855,6 +855,7 @@ public class JoulerPolicyService extends IJoulerPolicy.Stub {
 	    String packageName =  pendingIntent.getCreatorPackage();
 	    int delayedTime = this.getProperDelay(packageName, maxDelayedTime);
 	    time.add(Calendar.SECOND, delayedTime);
+	    Log.d(TAG, "Set delayedTime: " + delayedTime + " for " + packageName);
 	    am.set(AlarmManager.RTC_WAKEUP, time.getTimeInMillis(), pendingIntent);
 	}
 
@@ -872,6 +873,9 @@ public class JoulerPolicyService extends IJoulerPolicy.Stub {
 	}
 
 	private boolean contains(ArrayList<String> pkgs, String packageName) {
+		if (pkgs == null) {
+			return false;
+		}
 		for (String tmpPkgName : pkgs) {
 		    if (tmpPkgName.contains(packageName) || packageName.contains(tmpPkgName)) {
 			return true;
