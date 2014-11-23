@@ -5,10 +5,6 @@ package android.os;
 import java.util.List;
 import android.app.PendingIntent;
 
-/**
- * @hide
- */
-
 interface IJoulerPolicy {
     byte[] getStatistics();
     

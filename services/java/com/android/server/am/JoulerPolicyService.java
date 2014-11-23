@@ -24,7 +24,7 @@ import java.util.StringTokenizer;
 import java.util.concurrent.CountDownLatch;
 import java.util.Calendar;
 
-import sun.reflect.generics.tree.IntSignature;
+// import sun.reflect.generics.tree.IntSignature;
 
 import com.android.internal.app.IBatteryStats;
 import com.android.internal.os.BatteryStatsImpl;

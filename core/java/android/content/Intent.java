@@ -527,7 +527,7 @@ import java.util.Set;
  *     <li> {@link #ACTION_POWER_CONNECTED}
  *     <li> {@link #ACTION_POWER_DISCONNECTED}
  *     <li> {@link #ACTION_SHUTDOWN}
- *     <li> {@link #ACTION_ENERGY ALERT}
+ *     <li> {@link #ACTION_ENERGY_ALERT}
  *     <li> {@link #ACTION_RESUME_ACTIVITY}
  *     <li> {@link #ACTION_PAUSE_ACTIVITY}
  * </ul>
