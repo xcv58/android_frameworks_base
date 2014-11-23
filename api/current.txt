@@ -17868,6 +17868,7 @@ package android.os {
   public final class JoulerPolicy {
     method public void broadcastAlertIntent(java.util.List<java.lang.String>, java.util.List<java.lang.String>, java.util.List<java.lang.String>);
     method public void controlCpuMaxFrequency(int);
+    method public int[] getAllCpuFrequencies();
     method public byte[] getStatistics() throws android.os.RemoteException;
     method public void rateLimitForUid(int);
     method public void resetPriority(int, int);

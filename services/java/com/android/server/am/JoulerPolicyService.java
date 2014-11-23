@@ -23,6 +23,8 @@ import java.util.Map;
 import java.util.StringTokenizer;
 import java.util.concurrent.CountDownLatch;
 
+import sun.reflect.generics.tree.IntSignature;
+
 import com.android.internal.app.IBatteryStats;
 import com.android.internal.os.BatteryStatsImpl;
 import com.android.internal.os.PowerProfile;
@@ -58,7 +60,6 @@ import android.telephony.SignalStrength;
 import android.util.Log;
 import android.util.Slog;
 import android.util.SparseArray;
-
 import static android.os.BatteryStats.NETWORK_MOBILE_RX_BYTES;
 import static android.os.BatteryStats.NETWORK_MOBILE_TX_BYTES;
 import static android.os.BatteryStats.NETWORK_WIFI_RX_BYTES;
@@ -73,6 +74,8 @@ public class JoulerPolicyService extends IJoulerPolicy.Stub {
     final String TAG = "JoulerPolicyService";
     private static final String NETD_TAG = "NetdConnectorJouler";
     final int which = BatteryStats.STATS_SINCE_CHARGED;
+    
+    private static ArrayList<Integer> cpuFrequency = new ArrayList<Integer>();
 	
     private NativeDaemonConnector mConnector;
     private volatile boolean mBandwidthControlEnabled;
@@ -105,8 +108,101 @@ public class JoulerPolicyService extends IJoulerPolicy.Stub {
         public static final int InterfaceClassActivity    = 613;
     }
     
+    
 	
-	//Compute Uid Energy by Component
+	BroadcastReceiver updateReceiver = new BroadcastReceiver() {
+
+		@Override
+		public void onReceive(Context context, Intent intent) {
+			String act = intent.getAction();
+			if (act == "ACTION_BATTERY_CHANGED") {
+				int status = intent.getIntExtra(BatteryManager.EXTRA_STATUS, -1);
+				if(status == BatteryManager.BATTERY_STATUS_FULL && joulerStats != null && joulerStats.mUidArray.size() > 0){
+					synchronized(joulerStats) {
+						joulerStats.mSystemStats.resetOnCharge();
+						int size = joulerStats.mUidArray.size();
+						for(int i=0;i<size;i++){
+							UidStats uStats = joulerStats.mUidArray.valueAt(i);
+							int uid = uStats.getUid();
+							uStats.reset();
+							joulerStats.mUidArray.put(uid,uStats);
+						}
+					
+					}
+				}
+			}
+			else {
+				
+				Log.i(TAG,"Updating Stats");
+				updateStats();
+				//printUid();
+			}								
+		}
+		
+	};
+    
+    
+	public JoulerPolicyService(Context context) {
+		super();
+		mContext = context;
+		joulerStats = new JoulerStats();
+
+	}
+	
+	public void systemReady() {
+		IntentFilter intent = new IntentFilter();
+        intent.addAction(Intent.ACTION_BATTERY_CHANGED);
+        intent.addAction(Intent.ACTION_RESUME_ACTIVITY);
+        intent.addAction(Intent.ACTION_PAUSE_ACTIVITY);
+        mContext.registerReceiver(updateReceiver, intent);
+        mConnector = new NativeDaemonConnector(
+        new NetdCallbackReceiver(), "netd", 10, NETD_TAG, 160);
+        mThread = new Thread(mConnector, NETD_TAG);
+        final CountDownLatch connectedSignal = this.mConnectedSignal;
+        this.mThread.start();
+        try {
+        	connectedSignal.await();
+        } catch (InterruptedException e) {
+            // TODO Auto-generated catch block
+            Log.e(TAG,"Daemon Problem "+e.getMessage());
+        }
+
+/***********/
+		prepareNativeDaemon();
+		
+        bandwidthRules();
+        if (!cpuFrequency.isEmpty())
+        	 return;
+        
+        try {
+			Process cmd = new ProcessBuilder(new String[]{"sh","-c","/system/bin/cat  sys/devices/system/cpu/cpu0/cpufreq/scaling_available_frequencies"})
+					.redirectErrorStream(true).start();
+			InputStream in = cmd.getInputStream();
+			BufferedReader buf = new BufferedReader(new InputStreamReader(in));
+			String line;
+			while((line=buf.readLine()) != null){
+		         	for(String retval : line.split(" ")){
+		         		cpuFrequency.add(Integer.parseInt(retval));
+		         	}
+			}
+		    
+		    in.close();
+			Log.i(TAG, "Did i get all the frequencies, huh? "+ cpuFrequency.toString());
+		}catch (Exception e) {
+			Log.e(TAG, "Cpu info "+e.getMessage());
+		}
+        	
+	}
+	 
+	
+    
+    
+    
+    
+    
+	
+	//Compute Uid Energy by Component 
+	/*******************************/
 	double getAudioEnergy(Uid u, long uSecTime, PowerProfile mPowerProfile){
 		double power = 0;
 		long audioRunningMs = 0;
@@ -277,6 +373,7 @@ public class JoulerPolicyService extends IJoulerPolicy.Stub {
 	
 	
 	//Compute Energy Consumption by System
+	/************************************/
 	public double getScreenEnergy(BatteryStatsImpl mStats, long uSecNow, PowerProfile mPowerProfile){
 		double power = 0;
         	long screenOnTimeMs = mStats.getScreenOnTime(uSecNow, BatteryStats.STATS_SINCE_CHARGED) / 1000;
@@ -414,38 +511,8 @@ public class JoulerPolicyService extends IJoulerPolicy.Stub {
 		}
 	}
 	
-	
-	BroadcastReceiver updateReceiver = new BroadcastReceiver() {
 
-		@Override
-		public void onReceive(Context context, Intent intent) {
-			String act = intent.getAction();
-			if (act == "ACTION_BATTERY_CHANGED") {
-				int status = intent.getIntExtra(BatteryManager.EXTRA_STATUS, -1);
-				if(status == BatteryManager.BATTERY_STATUS_FULL && joulerStats != null && joulerStats.mUidArray.size() > 0){
-					synchronized(joulerStats) {
-						joulerStats.mSystemStats.resetOnCharge();
-						int size = joulerStats.mUidArray.size();
-						for(int i=0;i<size;i++){
-							UidStats uStats = joulerStats.mUidArray.valueAt(i);
-							int uid = uStats.getUid();
-							uStats.reset();
-							joulerStats.mUidArray.put(uid,uStats);
-						}
-					
-					}
-				}
-			}
-			else {
-				
-				Log.i(TAG,"Updating Stats");
-				updateStats();
-				printUid();
-			}								
-		}
-		
-	};
-	
+	//for calculating latest energy details and updating the JoulerStats object
 	public void updateStats() {
 		synchronized(joulerStats) {
 			BatteryStatsImpl mStats = ActivityManagerService.self().mBatteryStatsService.getActiveStatistics();
@@ -477,14 +544,14 @@ public class JoulerPolicyService extends IJoulerPolicy.Stub {
 		    		}
 		            JoulerStats.UidStats uStats = joulerStats.mUidArray.get(appId);
 		            double audio = getAudioEnergy(u, uSecTime, mPowerProfile);
-			    double video = getVideoEnergy(u, uSecTime, mPowerProfile);
-			    double cpu = getCpuEnergy(u, uSecTime, mPowerProfile);
-			    double wakelock = getWakelockEnergy(u, uSecTime, mPowerProfile);
-			    double mobileData = getMobileTrafficEnergy(mStats, u, mPowerProfile);
-			    double wifiData = getWifiTrafficEnergy(u, mPowerProfile);
-			    double wifi = getWifiEnergy(u, uSecTime, mPowerProfile);
-			    double sensor = getSensorEnergy(u, uSecTime, mPowerProfile, mContext);
-			    double power = uStats.updateEnergy(cpu, wakelock, mobileData, wifiData, wifi, sensor, video, audio);
+		            double video = getVideoEnergy(u, uSecTime, mPowerProfile);
+		            double cpu = getCpuEnergy(u, uSecTime, mPowerProfile);
+		            double wakelock = getWakelockEnergy(u, uSecTime, mPowerProfile);
+		            double mobileData = getMobileTrafficEnergy(mStats, u, mPowerProfile);
+		            double wifiData = getWifiTrafficEnergy(u, mPowerProfile);
+		            double wifi = getWifiEnergy(u, uSecTime, mPowerProfile);
+		            double sensor = getSensorEnergy(u, uSecTime, mPowerProfile, mContext);
+		            double power = uStats.updateEnergy(cpu, wakelock, mobileData, wifiData, wifi, sensor, video, audio);
 		            if(uStats.state == true)
 		            	uStats.updateFgEnergy(power);
 		            else
@@ -499,7 +566,7 @@ public class JoulerPolicyService extends IJoulerPolicy.Stub {
 		            
 		            //updating uid details
 		            joulerStats.mUidArray.put(appId, uStats);
-		            } 
+		        } 
 		            
 		       //Updating System Details
 		        double screen = getScreenEnergy(mStats, uSecTime, mPowerProfile);
@@ -519,66 +586,7 @@ public class JoulerPolicyService extends IJoulerPolicy.Stub {
 		
 	}
 	
-	public JoulerPolicyService(Context context) {
-		super();
-		mContext = context;
-		joulerStats = new JoulerStats();
-/*		IntentFilter intent = new IntentFilter();
-		intent.addAction(Intent.ACTION_BATTERY_CHANGED);
-		//intent.addAction("jouler.update.inputs");
-		intent.addAction(Intent.ACTION_RESUME_ACTIVITY);
-		intent.addAction(Intent.ACTION_PAUSE_ACTIVITY);
-		mContext.registerReceiver(updateReceiver, intent);
-		mConnector = new NativeDaemonConnector(
-                new NetdCallbackReceiver(), "netd", 10, NETD_TAG, 160);
-        	mThread = new Thread(mConnector, NETD_TAG);
-        	final CountDownLatch connectedSignal = this.mConnectedSignal;
-        	this.mThread.start();
-        	try {
-			connectedSignal.await();
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			Log.e(TAG,"Daemon Problem "+e.getMessage());
-		}
-*/
-	}
-	
-	public void systemReady() {
-		//Context mContext =  ActivityManagerService.self().mContext;
-		//Context mContext = context;
-		IntentFilter intent = new IntentFilter();
-                intent.addAction(Intent.ACTION_BATTERY_CHANGED);
-                //intent.addAction("jouler.update.inputs");
-                intent.addAction(Intent.ACTION_RESUME_ACTIVITY);
-                intent.addAction(Intent.ACTION_PAUSE_ACTIVITY);
-                mContext.registerReceiver(updateReceiver, intent);
-                mConnector = new NativeDaemonConnector(
-                new NetdCallbackReceiver(), "netd", 10, NETD_TAG, 160);
-                mThread = new Thread(mConnector, NETD_TAG);
-                final CountDownLatch connectedSignal = this.mConnectedSignal;
-                this.mThread.start();
-                try {
-                        connectedSignal.await();
-                } catch (InterruptedException e) {
-                        // TODO Auto-generated catch block
-                        Log.e(TAG,"Daemon Problem "+e.getMessage());
-                }
 
-/***********/
-		prepareNativeDaemon();
-		PendingIntent pIntent = PendingIntent.getBroadcast(mContext, 0, new Intent("jouler.update.inputs"), PendingIntent.FLAG_UPDATE_CURRENT);
-		alarmMgr = (AlarmManager) mContext.getSystemService(Context.ALARM_SERVICE);
-        	alarmMgr.setInexactRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP,
-                		60000, 180000, pIntent);
-      /*  alarmMgr.setInexactRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP,
-                360000,
-                180000, pIntent);
-        */
-     
-        	bandwidthRules();
-	}
-	 
-	
 	public void updateLaunchForPkg(String pkg, int count, long uTime){
 		PackageManager pm = mContext.getPackageManager();
         	List<ApplicationInfo> packages = pm.getInstalledApplications(PackageManager.GET_META_DATA);
@@ -587,14 +595,16 @@ public class JoulerPolicyService extends IJoulerPolicy.Stub {
         			UidStats u = joulerStats.mUidArray.get(packageInfo.uid);
         			u.setCount(count);
         			u.setUsageTime(uTime);
-        			Log.i(TAG,"Successfully updated "+u.getCount()+" launches and "+u.getUsageTime()+" usage time");
+        			//Log.i(TAG,"Successfully updated "+u.getCount()+" launches and "+u.getUsageTime()+" usage time");
         			break;
         		}
         	}
        
 	}
 	
-	
+	//startFgMonitor and stoFgMonitor are functions to update energy details of the uid whose activity 
+	//came and left screen foreground respectively in order to correctly distribute total energy to
+	//foreground and background
 	public void startFgMonitor(int appId) {
 		BatteryStatsImpl mStats = ActivityManagerService.self().mBatteryStatsService.getActiveStatistics();
 		synchronized(mStats){
@@ -632,6 +642,8 @@ public class JoulerPolicyService extends IJoulerPolicy.Stub {
 				u.updateBgEnergy(power);
 				u.updateCommonEnergy(power);
 				joulerStats.mUidArray.put(appId, u);
+				Log.i("JoulerDebug", "startMonitor "+ u.packageName+" Updated: "+u.getFgEnergy());
+
 			}
 					
 		}
@@ -662,7 +674,7 @@ public class JoulerPolicyService extends IJoulerPolicy.Stub {
 				double sensor = getSensorEnergy(mUid, uSecTime, mPowerProfile, mContext);
 				double power = u.updateEnergy(cpu, wakelock, mobileData, wifiData, wifi, sensor, video, audio);
 				u.updateFgEnergy(power);
-				Log.i("JoulerDebug", "Fg Energy: "+ power+" Updated: "+u.getFgEnergy());
+				Log.i("JoulerDebug", "stopMonitor "+u.packageName+" Updated: "+u.getFgEnergy());
 				u.updateCommonEnergy(power);
 				u.setState(false);
 				joulerStats.mUidArray.put(appId, u);
@@ -673,11 +685,10 @@ public class JoulerPolicyService extends IJoulerPolicy.Stub {
 				}catch(Exception e){
 					Log.e(TAG,"Error getting frameCount "+ e.getMessage());
 				}
-				Log.i(TAG,"stop Fg monitor: "+u.packageName+" uid= "+u.getUid()+" frames rendered: "+u.getFrame());
+				//Log.i(TAG,"stop Fg monitor: "+u.packageName+" uid= "+u.getUid()+" frames rendered: "+u.getFrame());
 			}
 		}
-		printSys();
-		printUid();
+		//printUid();
 	}
 	
 	public long getMeMyFrameCount(String packageName){
@@ -750,6 +761,14 @@ public class JoulerPolicyService extends IJoulerPolicy.Stub {
 		}
 		
 	}
+	
+	//@Override
+	public int[] getAllCpuFrequencies() {
+		int[] cpu = new int[cpuFrequency.size()];
+		for(int i=0; i < cpuFrequency.size(); i++)
+			cpu[i] = cpuFrequency.get(i);
+		return cpu;
+	}
 
 	public void bandwidthRules() {
 		Log.i(TAG,"About to set bandwidth rules");
@@ -805,7 +824,7 @@ public class JoulerPolicyService extends IJoulerPolicy.Stub {
 		if (brightness < 0 || brightness > 255)
 			return;
 		try {
-			Process cmd = new ProcessBuilder(new String[]{"sh","-c","/system/xbin/echo "+ brightness+" > sys/class/backlight/s6e8aa0/brightness"})
+			Process cmd = new ProcessBuilder(new String[]{"sh","-c","/system/xbin/echo "+ brightness+" > sys/class/backlight/lm3630/brightness"})
 							.redirectErrorStream(true)
 						    .start();
 			InputStream in = cmd.getInputStream();
