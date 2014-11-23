@@ -42,6 +42,16 @@ public final class JoulerPolicy
         }
 
     }
+    
+    
+    public int[] getAllCpuFrequencies() {
+    	try{
+    		int[] cpu = mService.getAllCpuFrequencies();
+		return cpu;
+    	}catch(RemoteException e){
+    		return null;
+    	}
+    }
 
      public void broadcastAlertIntent(List<String> badPackages, List<String> okayPackages, List<String> goodPackages) {
 	try {
