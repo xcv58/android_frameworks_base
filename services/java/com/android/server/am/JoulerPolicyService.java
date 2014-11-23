@@ -23,8 +23,6 @@ import java.util.Map;
 import java.util.StringTokenizer;
 import java.util.concurrent.CountDownLatch;
 
-import sun.reflect.generics.tree.IntSignature;
-
 import com.android.internal.app.IBatteryStats;
 import com.android.internal.os.BatteryStatsImpl;
 import com.android.internal.os.PowerProfile;
