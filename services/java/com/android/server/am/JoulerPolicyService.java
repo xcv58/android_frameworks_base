@@ -24,8 +24,6 @@ import java.util.StringTokenizer;
 import java.util.concurrent.CountDownLatch;
 import java.util.Calendar;
 
-// import sun.reflect.generics.tree.IntSignature;
-
 import com.android.internal.app.IBatteryStats;
 import com.android.internal.os.BatteryStatsImpl;
 import com.android.internal.os.PowerProfile;
@@ -643,9 +641,8 @@ public class JoulerPolicyService extends IJoulerPolicy.Stub {
 				double video = getVideoEnergy(mUid, uSecTime, mPowerProfile);
 				double cpu = getCpuEnergy(mUid, uSecTime, mPowerProfile);
 				double wakelock = getWakelockEnergy(mUid, uSecTime, mPowerProfile);
-				//double data = getDataTrafficEnergy(mUid, averageCostPerByte);
 				double mobileData = getMobileTrafficEnergy(mStats, mUid, mPowerProfile);
-                                double wifiData = getWifiTrafficEnergy(mUid, mPowerProfile);
+                double wifiData = getWifiTrafficEnergy(mUid, mPowerProfile);
 				double wifi = getWifiEnergy(mUid, uSecTime, mPowerProfile);
 				double sensor = getSensorEnergy(mUid, uSecTime, mPowerProfile, mContext);
 				double power = u.updateEnergy(cpu, wakelock, mobileData, wifiData, wifi, sensor, video, audio);
@@ -677,9 +674,8 @@ public class JoulerPolicyService extends IJoulerPolicy.Stub {
 				double video = getVideoEnergy(mUid, uSecTime, mPowerProfile);
 				double cpu = getCpuEnergy(mUid, uSecTime, mPowerProfile);
 				double wakelock = getWakelockEnergy(mUid, uSecTime, mPowerProfile);
-				//double data = getDataTrafficEnergy(mUid, averageCostPerByte);
 				double mobileData = getMobileTrafficEnergy(mStats, mUid, mPowerProfile);
-                                double wifiData = getWifiTrafficEnergy(mUid, mPowerProfile);
+                double wifiData = getWifiTrafficEnergy(mUid, mPowerProfile);
 				double wifi = getWifiEnergy(mUid, uSecTime, mPowerProfile);
 				double sensor = getSensorEnergy(mUid, uSecTime, mPowerProfile, mContext);
 				double power = u.updateEnergy(cpu, wakelock, mobileData, wifiData, wifi, sensor, video, audio);
@@ -744,7 +740,7 @@ public class JoulerPolicyService extends IJoulerPolicy.Stub {
 	
 	//@Override
 	public byte[] getStatistics() throws RemoteException {
-		//mContext.enforceCallingPermission(android.Manifest.permission.BATTERY_STATS, null);
+		mContext.enforceCallingPermission(android.Manifest.permission.ACCESS_JOULER, null);
 		Parcel out = Parcel.obtain();
         	joulerStats.writeToParcel(out, 0);
         	byte[] data = out.marshall();
@@ -754,6 +750,7 @@ public class JoulerPolicyService extends IJoulerPolicy.Stub {
 
 	//@Override
 	public void controlCpuMaxFrequency(int freq) throws RemoteException {
+		mContext.enforceCallingPermission(android.Manifest.permission.ACCESS_JOULER, null);
 		try {
 			Process cmd = new ProcessBuilder(new String[]{"sh","-c","/system/xbin/echo "+freq+" > sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq"})
 					.redirectErrorStream(true).start();
@@ -774,6 +771,7 @@ public class JoulerPolicyService extends IJoulerPolicy.Stub {
 	
 	//@Override
 	public int[] getAllCpuFrequencies() {
+		mContext.enforceCallingPermission(android.Manifest.permission.ACCESS_JOULER, null);
 		int[] cpu = new int[cpuFrequency.size()];
 		for(int i=0; i < cpuFrequency.size(); i++)
 			cpu[i] = cpuFrequency.get(i);
@@ -795,6 +793,7 @@ public class JoulerPolicyService extends IJoulerPolicy.Stub {
 	
 	//@Override
 	public void rateLimitForUid(int uid) throws RemoteException {
+		mContext.enforceCallingPermission(android.Manifest.permission.ACCESS_JOULER, null);
 		UidStats uStats = joulerStats.mUidArray.get(uid);
 		if (uStats.getThrottle()) {
 			delRateLimitRule(uid);
@@ -829,8 +828,9 @@ public class JoulerPolicyService extends IJoulerPolicy.Stub {
 	
 	
 
-	//@Override
+/*	//@Override
 	public void setScreenBrightness(int brightness) throws RemoteException {
+		mContext.enforceCallingPermission(android.Manifest.permission.ACCESS_JOULER, null);
 		if (brightness < 0 || brightness > 255)
 			return;
 		try {
@@ -841,7 +841,7 @@ public class JoulerPolicyService extends IJoulerPolicy.Stub {
 			BufferedReader buf = new BufferedReader(new InputStreamReader(in));
 			String line;
 			while((line=buf.readLine()) != null){
-		         Log.i(TAG,"writing to sys/class/backlight/s6e8aa0/brightness file: " + line );
+		         Log.i(TAG,"sys/class/backlight/lm3630/brightness " + line );
 			}
 		    
 		    in.close();
@@ -851,10 +851,11 @@ public class JoulerPolicyService extends IJoulerPolicy.Stub {
 		}
 		
 	}
-
+*/
 	//@Override
 	public void broadcastAlertIntent(List<String> badPackages, List<String> okayPackages, List<String> goodPackages)
 			throws RemoteException {
+		mContext.enforceCallingPermission(android.Manifest.permission.ACCESS_JOULER, null);
 		badPkgs = (ArrayList<String>) badPackages;
 		okayPkgs = (ArrayList<String>) okayPackages;
 		goodPkgs = (ArrayList<String>) goodPackages;
@@ -905,6 +906,7 @@ public class JoulerPolicyService extends IJoulerPolicy.Stub {
 
 	//@Override
 	public void resetPriority(int uid, int priority){
+		mContext.enforceCallingPermission(android.Manifest.permission.ACCESS_JOULER, null);
 		String userName;
 		if(uid == 0)
 			userName = "root";

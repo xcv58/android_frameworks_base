@@ -68,7 +68,7 @@ public final class JoulerPolicy
         }
 
     }
-
+/*
     public void setScreenBrightness(int brightness) {
         try {
                 mService.setScreenBrightness(brightness);
@@ -76,7 +76,7 @@ public final class JoulerPolicy
         }
 
     }
-
+*/
     public void rateLimitForUid(int uid) {
         try {
                 mService.rateLimitForUid(uid);
