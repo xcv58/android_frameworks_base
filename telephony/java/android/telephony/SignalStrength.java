@@ -903,20 +903,12 @@ public class SignalStrength implements Parcelable, JSONable {
 
     /** @hide */
     public StrictJSONObject toJSONObject() {
-        return (new StrictJSONObject())
-            .put("GsmSignalStrength", mGsmSignalStrength)
-            .put("GsmBitErrorRate", mGsmBitErrorRate)
-            .put("CdmaDbm", mCdmaDbm)
-            .put("CdmaEcio", mCdmaEcio)
-            .put("EvdoDbm", mEvdoDbm)
-            .put("EvdoEcio", mEvdoEcio)
-            .put("EvdoSnr", mEvdoSnr)
-            .put("LteSignalStrength", mLteSignalStrength)
-            .put("LteRsrp", mLteRsrp)
-            .put("LteRsrq", mLteRsrq)
-            .put("LteRssnr", mLteRssnr)
-            .put("LteCqi", mLteCqi)
-            .put("IsGsm", isGsm);
+        StrictJSONObject json = new StrictJSONObject();
+        json.put("Type", isGsm? "GSM": "CDMA");
+        json.put("Level", getLevel());
+        json.put("Strength", getDbm());
+        json.put("Asu", getAsuLevel());
+        return json;
     }
 
     /**

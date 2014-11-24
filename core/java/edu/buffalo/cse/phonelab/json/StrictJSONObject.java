@@ -42,6 +42,9 @@ public class StrictJSONObject {
     public static final String DEFAULT_TAG = "PhoneLabLog";
     public static final String NONE = "<none>";
 
+    public static final String KEY_ACTION = "Action";
+    public static final String UNKNOWN = "<unknown>";
+
     private String tag = DEFAULT_TAG;
     private JSONObject json;
 
@@ -186,6 +189,14 @@ public class StrictJSONObject {
 
     public void log() {
         this.put("LogFormat", LOG_FORMAT);
+        if (!json.has(KEY_ACTION)) {
+            try {
+                json.put(KEY_ACTION, UNKNOWN);
+            }
+            catch (JSONException e) {
+                // ignore it
+            }
+        }
         Log.i(tag, json.toString());
     }
 }

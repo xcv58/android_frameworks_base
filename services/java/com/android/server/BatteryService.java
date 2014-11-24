@@ -84,7 +84,7 @@ import edu.buffalo.cse.phonelab.json.StrictJSONObject;
  */
 public final class BatteryService extends Binder {
     private static final String TAG = BatteryService.class.getSimpleName();
-    private static final String PHONELAB_TAG = "PhoneLab-" + TAG;
+    private static final String PHONELAB_TAG = "PhoneLab-Power-Battery";
 
     private static final boolean DEBUG = false;
 
@@ -470,6 +470,19 @@ public final class BatteryService extends Binder {
     }
 
     private void sendIntentLocked() {
+
+        /**
+         * PhoneLab
+         *
+         * {
+         * "Category": "Power",
+         * "SubCategory": "Battery",
+         * "Tag": "PhoneLab-Power-Battery",
+         * "Action": "android.intent.action.BATTERY_CHANGED.",
+         * "Description": "Battery status changed."
+         * }
+         */
+ 
         (new StrictJSONObject(PHONELAB_TAG))
             .put("Action", Intent.ACTION_BATTERY_CHANGED)
             .put("Scale", BATTERY_SCALE)

@@ -171,7 +171,7 @@ import edu.buffalo.cse.phonelab.json.StrictJSONArray;
  */
 public class ConnectivityService extends IConnectivityManager.Stub {
     private static final String TAG = "ConnectivityService";
-    private static final String PHONELAB_TAG = "PhoneLab-" + TAG;
+    private static final String PHONELAB_TAG = "PhoneLab-Network-Misc";
 
     private static final boolean DBG = false;
     private static final boolean VDBG = false;
@@ -5019,6 +5019,17 @@ public class ConnectivityService extends IConnectivityManager.Stub {
             }
         }
 
+        /**
+         * PhoneLab
+         *
+         * {
+         * "Category": "Network",
+         * "SubCategory": "Misc",
+         * "Tag": "PhoneLab-Network-Misc",
+         * "Action": "android.net.ConnectivityService.PACKET_COUNT_SAMPLE",
+         * "Description": "Per interface packet sampling."
+         * }
+         */
         (new StrictJSONObject(PHONELAB_TAG))
             .put("Action", "android.net.ConnectivityService.PACKET_COUNT_SAMPLE")
             .put("Samples", array)

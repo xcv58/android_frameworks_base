@@ -179,7 +179,7 @@ adb shell am instrument -w -e class com.android.unit_tests.PackageManagerTests c
  */
 public class PackageManagerService extends IPackageManager.Stub {
     static final String TAG = "PackageManager";
-    static final String PHONELAB_TAG = "PhoneLab-" + TAG;
+    static final String PHONELAB_TAG = "PhoneLab-PacketManager-Misc";
     static final boolean DEBUG_SETTINGS = false;
     static final boolean DEBUG_PREFERRED = false;
     static final boolean DEBUG_UPGRADE = false;
@@ -6289,6 +6289,18 @@ public class PackageManagerService extends IPackageManager.Stub {
     static final void sendPackageBroadcast(String action, String pkg,
             Bundle extras, String targetPkg, IIntentReceiver finishedReceiver,
             int[] userIds) {
+
+        /**
+         * PhoneLab
+         *
+         * {
+         * "Category": "PacketManager",
+         * "SubCategory": "Misc",
+         * "Tag": "PhoneLab-PackageManager-Misc",
+         * "Action": "android.intent.action.PACKAGE_*",
+         * "Description": "Package installed/uninstalled/updated."
+         * }
+         */
         (new StrictJSONObject(PHONELAB_TAG))
             .put("Action", action)
             .put("PackageName", pkg)

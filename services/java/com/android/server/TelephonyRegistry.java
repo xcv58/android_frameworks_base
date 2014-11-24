@@ -62,7 +62,7 @@ import edu.buffalo.cse.phonelab.json.StrictJSONObject;
  */
 class TelephonyRegistry extends ITelephonyRegistry.Stub {
     private static final String TAG = "TelephonyRegistry";
-    private static final String PHONELAB_TAG = "PhoneLab-" + TAG;
+    private static final String PHONELAB_TAG = "PhoneLab-Network-Telephony";
     private static final boolean DBG = false;
     private static final boolean DBG_LOC = false;
 
@@ -372,7 +372,11 @@ class TelephonyRegistry extends ITelephonyRegistry.Stub {
         if (!checkNotifyPermission("notifySignalStrength()")) {
             return;
         }
+        boolean shouldBroadcast = false;
         synchronized (mRecords) {
+            if (mSignalStrength.getDbm() != signalStrength.getDbm()) {
+                shouldBroadcast = true;
+            }
             mSignalStrength = signalStrength;
             for (Record r : mRecords) {
                 if ((r.events & PhoneStateListener.LISTEN_SIGNAL_STRENGTHS) != 0) {
@@ -394,7 +398,9 @@ class TelephonyRegistry extends ITelephonyRegistry.Stub {
             }
             handleRemoveListLocked();
         }
-        broadcastSignalStrengthChanged(signalStrength);
+        if (shouldBroadcast) {
+            broadcastSignalStrengthChanged(signalStrength);
+        }
     }
 
     public void notifyCellInfo(List<CellInfo> cellInfo) {
@@ -438,6 +444,17 @@ class TelephonyRegistry extends ITelephonyRegistry.Stub {
             handleRemoveListLocked();
         }
 
+        /**
+         * PhoneLab
+         *
+         * {
+         * "Category": "Network",
+         * "SubCategory": "Telephony",
+         * "Tag": "PhoneLab-Network-Telephony",
+         * "Action": "android.telephony.MESSAGE_WAITING_CHANGED",
+         * "Description": "Message waiting status changed."
+         * }
+         */
         (new StrictJSONObject(PHONELAB_TAG))
             .put("Action", "android.telephony.MESSAGE_WAITING_CHANGED")
             .put("MessageWaiting", mwi)
@@ -462,10 +479,22 @@ class TelephonyRegistry extends ITelephonyRegistry.Stub {
             handleRemoveListLocked();
         }
 
+        /**
+         * PhoneLab
+         *
+         * {
+         * "Category": "Network",
+         * "SubCategory": "Telephony",
+         * "Tag": "PhoneLab-Network-Telephony",
+         * "Action": "android.telephony.CALL_FORWARDING_CHANGED",
+         * "Description": "Call forwarding status changed."
+         * }
+         */
         (new StrictJSONObject(PHONELAB_TAG))
             .put("Action", "android.telephony.CALL_FORWARDING_CHANGED")
             .put("CallForwarding", cfi)
             .log();
+
 
     }
 
@@ -487,6 +516,17 @@ class TelephonyRegistry extends ITelephonyRegistry.Stub {
             handleRemoveListLocked();
         }
 
+        /**
+         * PhoneLab
+         *
+         * {
+         * "Category": "Network",
+         * "SubCategory": "Telephony",
+         * "Tag": "PhoneLab-Network-Telephony",
+         * "Action": "android.telephony.DATA_ACTIVITY_CHANGED",
+         * "Description": "Cellular data activity."
+         * }
+         */
         (new StrictJSONObject(PHONELAB_TAG))
             .put("Action", "android.telephony.DATA_ACTIVITY_CHANGED")
             .put("DataActivity", DefaultPhoneNotifier.convertDataState(state).name())
@@ -601,6 +641,17 @@ class TelephonyRegistry extends ITelephonyRegistry.Stub {
             handleRemoveListLocked();
         }
 
+        /**
+         * PhoneLab
+         *
+         * {
+         * "Category": "Network",
+         * "SubCategory": "Telephony",
+         * "Tag": "PhoneLab-Network-Telephony",
+         * "Action": "android.telephony.CELL_LOCATION_CHANGED",
+         * "Description": "Cell tower location changed."
+         * }
+         */
         (new StrictJSONObject(PHONELAB_TAG))
             .put("Action", "android.telephony.CELL_LOCATION_CHANGED")
             .put("CellLocation", CellLocation.newFromBundle(cellLocation))
@@ -673,6 +724,17 @@ class TelephonyRegistry extends ITelephonyRegistry.Stub {
             Binder.restoreCallingIdentity(ident);
         }
 
+        /**
+         * PhoneLab
+         *
+         * {
+         * "Category": "Network",
+         * "SubCategory": "Telephony",
+         * "Tag": "PhoneLab-Network-Telephony",
+         * "Action": "android.intent.action.SERVICE_STATE",
+         * "Description": "Cellular service state changed."
+         * }
+         */
         (new StrictJSONObject(PHONELAB_TAG))
             .put("Action", TelephonyIntents.ACTION_SERVICE_STATE_CHANGED)
             .put("State", state)
@@ -694,6 +756,18 @@ class TelephonyRegistry extends ITelephonyRegistry.Stub {
         } finally {
             Binder.restoreCallingIdentity(ident);
         }
+
+        /**
+         * PhoneLab
+         *
+         * {
+         * "Category": "Network",
+         * "SubCategory": "Telephony",
+         * "Tag": "PhoneLab-Network-Telephony",
+         * "Action": "android.intent.action.SIG_STR",
+         * "Description": "Cellular signal strength changed."
+         * }
+         */
 
         (new StrictJSONObject(PHONELAB_TAG))
             .put("Action", TelephonyIntents.ACTION_SIGNAL_STRENGTH_CHANGED)
@@ -722,6 +796,17 @@ class TelephonyRegistry extends ITelephonyRegistry.Stub {
             Binder.restoreCallingIdentity(ident);
         }
 
+        /**
+         * PhoneLab
+         *
+         * {
+         * "Category": "Network",
+         * "SubCategory": "Telephony",
+         * "Tag": "PhoneLab-Network-Telephony",
+         * "Action": "android.intent.action.PHONE_STATE",
+         * "Description": "Phone calling state changed (incoming call)."
+         * }
+         */
         (new StrictJSONObject(PHONELAB_TAG))
             .put("Action", TelephonyManager.ACTION_PHONE_STATE_CHANGED)
             .put("CallState", DefaultPhoneNotifier.convertCallState(state).name())
@@ -743,6 +828,18 @@ class TelephonyRegistry extends ITelephonyRegistry.Stub {
             String reason, String apn, String apnType, LinkProperties linkProperties,
             LinkCapabilities linkCapabilities, boolean roaming) {
 
+        /**
+         * PhoneLab
+         *
+         * {
+         * "Category": "Network",
+         * "SubCategory": "Telephony",
+         * "Tag": "PhoneLab-Network-Telephony",
+         * "Action": "android.intent.action.ANY_DATA_STATE",
+         * "Description": "Cellular data connectivity changed."
+         * }
+         */
+ 
         (new StrictJSONObject(PHONELAB_TAG))
             .put("Action", TelephonyIntents.ACTION_ANY_DATA_CONNECTION_STATE_CHANGED)
             .put("State", DefaultPhoneNotifier.convertDataState(state).name())
@@ -786,6 +883,17 @@ class TelephonyRegistry extends ITelephonyRegistry.Stub {
 
     private void broadcastDataConnectionFailed(String reason, String apnType) {
 
+        /**
+         * PhoneLab
+         *
+         * {
+         * "Category": "Network",
+         * "SubCategory": "Telephony",
+         * "Tag": "PhoneLab-Network-Telephony",
+         * "Action": "android.intent.action.DATA_CONNECTION_FAILED",
+         * "Description": "Cellular data connection failed."
+         * }
+         */
         (new StrictJSONObject(PHONELAB_TAG))
             .put("Action", TelephonyIntents.ACTION_DATA_CONNECTION_FAILED)
             .put("Reason", reason)

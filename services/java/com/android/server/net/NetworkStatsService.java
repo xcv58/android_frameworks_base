@@ -140,7 +140,7 @@ import edu.buffalo.cse.phonelab.json.StrictJSONObject;
  */
 public class NetworkStatsService extends INetworkStatsService.Stub {
     private static final String TAG = "NetworkStats";
-    private final String PHONELAB_TAG = "PhoneLab-" + this.getClass().getSimpleName();
+    private final String PHONELAB_TAG = "PhoneLab-Network-Misc";
     private static final boolean LOGV = false;
 
     private static final int MSG_PERFORM_POLL = 1;
@@ -986,6 +986,17 @@ public class NetworkStatsService extends INetworkStatsService.Stub {
             mUidRecorder.recordSnapshotLocked(uidSnapshot, mActiveIfaces, currentTime);
             mUidTagRecorder.recordSnapshotLocked(uidSnapshot, mActiveIfaces, currentTime);
 
+            /**
+             * PhoneLab
+             *
+             * {
+             * "Category": "Network",
+             * "SubCategory": "Misc",
+             * "Tag": "PhoneLab-Network-Misc",
+             * "Action": "com.android.server.action.NETWORK_STATS_UPDATED",
+             * "Description": "Per process network statistics."
+             * }
+             */
             (new StrictJSONObject(PHONELAB_TAG))
                 .put("Action", ACTION_NETWORK_STATS_UPDATED)
                 .put("DevSnapshot", devSnapshot)
@@ -1212,20 +1223,20 @@ public class NetworkStatsService extends INetworkStatsService.Stub {
         public boolean handleMessage(Message msg) {
             switch (msg.what) {
                 case MSG_PERFORM_POLL: {
-                    final int flags = msg.arg1;
-                    performPoll(flags);
-                    return true;
+                                           final int flags = msg.arg1;
+                                           performPoll(flags);
+                                           return true;
                 }
                 case MSG_UPDATE_IFACES: {
-                    updateIfaces();
-                    return true;
+                                            updateIfaces();
+                                            return true;
                 }
                 case MSG_REGISTER_GLOBAL_ALERT: {
-                    registerGlobalAlert();
-                    return true;
+                                                    registerGlobalAlert();
+                                                    return true;
                 }
                 default: {
-                    return false;
+                             return false;
                 }
             }
         }

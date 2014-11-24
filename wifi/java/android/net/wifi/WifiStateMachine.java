@@ -114,7 +114,7 @@ public class WifiStateMachine extends StateMachine {
     private static final String NETWORKTYPE = "WIFI";
     private static final boolean DBG = false;
 
-    private final String PHONELAB_TAG = "PhoneLab-" + this.getClass().getSimpleName();
+    private final String PHONELAB_TAG = "PhoneLab-Network-Wifi";
 
     private WifiMonitor mWifiMonitor;
     private WifiNative mWifiNative;
@@ -1844,6 +1844,17 @@ public class WifiStateMachine extends StateMachine {
 
         if (DBG) log("setWifiState: " + syncGetWifiStateByName());
 
+        /**
+         * PhoneLab
+         *
+         * {
+         * "Category": "Network",
+         * "SubCategory": "Wifi",
+         * "Tag": "PhoneLab-Network-Wifi",
+         * "Action": "android.net.wifi.WIFI_STATE_CHANGED",
+         * "Description": "Wifi state change (enabled/disabled)."
+         * }
+         */
         (new StrictJSONObject(PHONELAB_TAG))
             .put("Action", WifiManager.WIFI_STATE_CHANGED_ACTION)
             .put("CurrentState", getWifiStateByName(mWifiState.get()))
@@ -2188,6 +2199,17 @@ public class WifiStateMachine extends StateMachine {
     }
 
     private void sendScanResultsAvailableBroadcast() {
+        /**
+         * PhoneLab
+         *
+         * {
+         * "Category": "Network",
+         * "SubCategory": "Wifi",
+         * "Tag": "PhoneLab-Network-Wifi",
+         * "Action": "android.net.wifi.SCAN_RESULTS",
+         * "Description": "Wifi scan results."
+         * }
+         */
         (new StrictJSONObject(PHONELAB_TAG))
             .put("Action", WifiManager.SCAN_RESULTS_AVAILABLE_ACTION)
             .put("Results", mScanResults)
@@ -2200,6 +2222,17 @@ public class WifiStateMachine extends StateMachine {
     }
 
     private void sendRssiChangeBroadcast(final int newRssi) {
+        /**
+         * PhoneLab
+         *
+         * {
+         * "Category": "Network",
+         * "SubCategory": "Wifi",
+         * "Tag": "PhoneLab-Network-Wifi",
+         * "Action": "android.net.wifi.RSSI_CHANGED",
+         * "Description": "Link RSSI update."
+         * }
+         */
         (new StrictJSONObject(PHONELAB_TAG))
             .put("Action", WifiManager.RSSI_CHANGED_ACTION)
             .put("WifiInfo", mWifiInfo)
@@ -2212,6 +2245,17 @@ public class WifiStateMachine extends StateMachine {
     }
 
     private void sendNetworkStateChangeBroadcast(String bssid) {
+        /**
+         * PhoneLab
+         *
+         * {
+         * "Category": "Network",
+         * "SubCategory": "Wifi",
+         * "Tag": "PhoneLab-Network-Wifi",
+         * "Action": "android.net.wifi.STATE_CHANGE",
+         * "Description": "Network connected/disconnected."
+         * }
+         */
         (new StrictJSONObject(PHONELAB_TAG))
             .put("Action", WifiManager.NETWORK_STATE_CHANGED_ACTION)
             .put("WifiInfo", mWifiInfo)
@@ -2233,6 +2277,17 @@ public class WifiStateMachine extends StateMachine {
     }
 
     private void sendLinkConfigurationChangedBroadcast() {
+        /**
+         * PhoneLab
+         *
+         * {
+         * "Category": "Network",
+         * "SubCategory": "Wifi",
+         * "Tag": "PhoneLab-Network-Wifi",
+         * "Action": "android.net.wifi.LINK_CONFIGURATION_CHANGED",
+         * "Description": "Link confiration changed."
+         * }
+         */
         (new StrictJSONObject(PHONELAB_TAG))
             .put("Action", WifiManager.LINK_CONFIGURATION_CHANGED_ACTION)
             .put("LinkProperties", mLinkProperties)
@@ -2245,6 +2300,17 @@ public class WifiStateMachine extends StateMachine {
     }
 
     private void sendSupplicantConnectionChangedBroadcast(boolean connected) {
+        /**
+         * PhoneLab
+         *
+         * {
+         * "Category": "Network",
+         * "SubCategory": "Wifi",
+         * "Tag": "PhoneLab-Network-Wifi",
+         * "Action": "android.net.wifi.supplicant.STATE_CHANGE",
+         * "Description": "WPA supplicant conection state change."
+         * }
+         */
         (new StrictJSONObject(PHONELAB_TAG))
             .put("Action", WifiManager.SUPPLICANT_CONNECTION_CHANGE_ACTION)
             .put("Connected", connected)

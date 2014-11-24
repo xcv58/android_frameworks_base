@@ -64,7 +64,7 @@ import edu.buffalo.cse.phonelab.json.StrictJSONObject;
  */
 final class Notifier {
     private static final String TAG = "PowerManagerNotifier";
-    private static final String PHONELAB_TAG = "PhoneLab-" + TAG;
+    private static final String PHONELAB_TAG = "PhoneLab-Power-Screen";
 
     private static final boolean DEBUG = false;
 
@@ -435,6 +435,18 @@ final class Notifier {
         }
 
         if (ActivityManagerNative.isSystemReady()) {
+
+            /**
+             * PhoneLab
+             *
+             * {
+             * "Category": "Power",
+             * "SubCategory": "Screen",
+             * "Tag": "PhoneLab-Power-Screen",
+             * "Action": "android.intent.action.SCREEN_ON",
+             * "Description": "Screen turned on."
+             * }
+             */
             (new StrictJSONObject(PHONELAB_TAG))
                 .put("Action", Intent.ACTION_SCREEN_ON)
                 .log();
@@ -447,17 +459,17 @@ final class Notifier {
     }
 
     private final WindowManagerPolicy.ScreenOnListener mScreenOnListener =
-            new WindowManagerPolicy.ScreenOnListener() {
-        @Override
-        public void onScreenOn() {
-            synchronized (mLock) {
-                if (mScreenOnBlockerAcquired && !mPendingWakeUpBroadcast) {
-                    mScreenOnBlockerAcquired = false;
-                    mScreenOnBlocker.release();
+        new WindowManagerPolicy.ScreenOnListener() {
+            @Override
+            public void onScreenOn() {
+                synchronized (mLock) {
+                    if (mScreenOnBlockerAcquired && !mPendingWakeUpBroadcast) {
+                        mScreenOnBlockerAcquired = false;
+                        mScreenOnBlocker.release();
+                    }
                 }
             }
-        }
-    };
+        };
 
     private final BroadcastReceiver mWakeUpBroadcastDone = new BroadcastReceiver() {
         @Override
@@ -508,6 +520,17 @@ final class Notifier {
         }
 
         if (ActivityManagerNative.isSystemReady()) {
+            /**
+             * PhoneLab
+             *
+             * {
+             * "Category": "Power",
+             * "SubCategory": "Screen",
+             * "Tag": "PhoneLab-Power-Screen",
+             * "Action": "android.intent.action.SCREEN_OFF",
+             * "Description": "Screen turned off."
+             * }
+             */
             (new StrictJSONObject(PHONELAB_TAG))
                 .put("Action", Intent.ACTION_SCREEN_OFF)
                 .put("Reason", getReasonString(why))
