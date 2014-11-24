@@ -69,7 +69,7 @@ import com.android.server.search.SearchManagerService;
 import com.android.server.usb.UsbService;
 import com.android.server.wifi.WifiService;
 import com.android.server.wm.WindowManagerService;
-
+import com.android.server.am.JoulerPolicyService;
 import dalvik.system.VMRuntime;
 import dalvik.system.Zygote;
 
@@ -156,6 +156,7 @@ class ServerThread {
         InputManagerService inputManager = null;
         TelephonyRegistry telephonyRegistry = null;
         ConsumerIrService consumerIr = null;
+	//JoulerPolicyService jouler = null;
 
         // Create a handler thread just for the window manager to enjoy.
         HandlerThread wmHandlerThread = new HandlerThread("WindowManager");
@@ -358,6 +359,8 @@ class ServerThread {
         AssetAtlasService atlas = null;
         PrintManagerService printManager = null;
         MediaRouterService mediaRouter = null;
+	JoulerPolicyService jouler = null;
+
 
         // Bring up services needed for UI.
         if (factoryTest != SystemServer.FACTORY_TEST_LOW_LEVEL) {
@@ -542,6 +545,15 @@ class ServerThread {
                 } catch (Throwable e) {
                     reportWtf("starting UpdateLockService", e);
                 }
+            }
+
+	    try{
+                //JoulerPolicyService
+                Slog.i(TAG, "JoulerPolicy Service");
+                jouler = new JoulerPolicyService(context);
+                ServiceManager.addService(Context.JOULER_SERVICE, jouler);
+            }catch(Throwable e){
+                reportWtf("starting JoulerPolicyService",e);
             }
 
             /*
@@ -929,6 +941,7 @@ class ServerThread {
         final TelephonyRegistry telephonyRegistryF = telephonyRegistry;
         final PrintManagerService printManagerF = printManager;
         final MediaRouterService mediaRouterF = mediaRouter;
+	final JoulerPolicyService joulerF = jouler;
 
         // We now tell the activity manager it is okay to run third party
         // code.  It will call back into us once it has gotten to the state
@@ -1082,6 +1095,13 @@ class ServerThread {
                 } catch (Throwable e) {
                     reportWtf("Notifying MediaRouterService running", e);
                 }
+
+		try {
+                        if(joulerF != null) joulerF.systemReady();
+                }catch(Throwable e){
+                        reportWtf("making Jouler ready",e);
+                }
+
             }
         });
 

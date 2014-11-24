@@ -45,7 +45,7 @@ import java.util.LinkedList;
  * Generic connector class for interfacing with a native daemon which uses the
  * {@code libsysutils} FrameworkListener protocol.
  */
-final class NativeDaemonConnector implements Runnable, Handler.Callback, Watchdog.Monitor {
+public final class NativeDaemonConnector implements Runnable, Handler.Callback, Watchdog.Monitor {
     private static final boolean LOGD = false;
 
     private final String TAG;
@@ -69,7 +69,7 @@ final class NativeDaemonConnector implements Runnable, Handler.Callback, Watchdo
 
     private final int BUFFER_SIZE = 4096;
 
-    NativeDaemonConnector(INativeDaemonConnectorCallbacks callbacks, String socket,
+    public NativeDaemonConnector(INativeDaemonConnectorCallbacks callbacks, String socket,
             int responseQueueSize, String logTag, int maxLogSize) {
         mCallbacks = callbacks;
         mSocket = socket;

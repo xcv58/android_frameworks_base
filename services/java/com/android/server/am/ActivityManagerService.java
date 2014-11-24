@@ -2841,6 +2841,34 @@ public final class ActivityManagerService extends ActivityManagerNative
                 stats.noteActivityPausedLocked(component.app.uid);
             }
         }
+	broadcastAppState(component, resumed);
+    }
+
+//  Broadcast application details when it either resumes or pauses
+    void broadcastAppState(ActivityRecord component, boolean resumed) {
+	/*Jouler customization*/
+        Intent mIntent = new Intent();
+	if (resumed) {
+	    mIntent.setAction(Intent.ACTION_RESUME_ACTIVITY);
+            mIntent.setFlags(Intent.FLAG_FROM_BACKGROUND);
+            mIntent.putExtra("Package",component.packageName);
+            mIntent.putExtra("UserId",component.app.uid);
+            broadcastIntentLocked(null, null, mIntent, null,
+                null, 0, null, null, null, AppOpsManager.OP_NONE, false, true, -1,
+                Process.SYSTEM_UID, UserHandle.USER_ALL);
+            Log.i("JoulerDebug", "Resume App: "+ component.packageName + " : "+component.app.uid);
+
+	} else {
+	    mIntent.setAction(Intent.ACTION_PAUSE_ACTIVITY);
+            mIntent.setFlags(Intent.FLAG_FROM_BACKGROUND);
+            mIntent.putExtra("Package",component.packageName);
+            mIntent.putExtra("UserId",component.app.uid);
+            broadcastIntentLocked(null, null, mIntent, null,
+                null, 0, null, null, null, AppOpsManager.OP_NONE, false, true, -1,
+                Process.SYSTEM_UID, UserHandle.USER_ALL);
+            Log.i("JoulerDebug", "Pause App: "+ component.packageName + " : "+component.app.uid);
+
+	}
     }
 
     Intent getHomeIntent() {

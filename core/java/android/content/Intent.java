@@ -527,6 +527,9 @@ import java.util.Set;
  *     <li> {@link #ACTION_POWER_CONNECTED}
  *     <li> {@link #ACTION_POWER_DISCONNECTED}
  *     <li> {@link #ACTION_SHUTDOWN}
+ *     <li> {@link #ACTION_ENERGY ALERT}
+ *     <li> {@link #ACTION_RESUME_ACTIVITY}
+ *     <li> {@link #ACTION_PAUSE_ACTIVITY}
  * </ul>
  *
  * <h3>Standard Categories</h3>
@@ -590,6 +593,9 @@ import java.util.Set;
  *     <li> {@link #EXTRA_TEXT}
  *     <li> {@link #EXTRA_TITLE}
  *     <li> {@link #EXTRA_UID}
+ *     <li> {@link #EXTRA_BAD_PACKAGE_LIST}
+ *     <li> {@link #EXTRA_OKAY_PACKAGE_LIST}
+ *     <li> {@link #EXTRA_GOOD_PACKAGE_LIST}
  * </ul>
  *
  * <h3>Flags</h3>
@@ -1268,6 +1274,7 @@ public class Intent implements Parcelable, Cloneable {
     @SdkConstant(SdkConstantType.ACTIVITY_INTENT_ACTION)
     public static final String ACTION_POWER_USAGE_SUMMARY = "android.intent.action.POWER_USAGE_SUMMARY";
 
+    
     /**
      * Activity Action: Setup wizard to launch after a platform update.  This
      * activity should have a string meta-data field associated with it,
@@ -1413,6 +1420,48 @@ public class Intent implements Parcelable, Cloneable {
     // ---------------------------------------------------------------------
     // Standard intent broadcast actions (see action variable).
 
+    /**
+     * Broadcast Action: When an application comes to screen foreground.
+     */
+    @SdkConstant(SdkConstantType.BROADCAST_INTENT_ACTION)
+    public static final String ACTION_RESUME_ACTIVITY = "android.intent.action.RESUME_ACTIVITY";
+
+    /**
+     * Broadcast Action: When an application goes to screen background
+     */
+    @SdkConstant(SdkConstantType.BROADCAST_INTENT_ACTION)
+    public static final String ACTION_PAUSE_ACTIVITY = "android.intent.action.PAUSE_ACTIVITY";
+
+   /**
+     * Broadcast Action: Show high, moderate and low energy consuming application lists so that 
+	 * apps can control their energy consumption accordingly
+     * <p>Send as extras list of package names of the apps {@link #EXTRA_BAD_PACKAGE_LIST #EXTRA_OKAY_PACKAGE_LIST
+     * #EXTRA_GOOD_PACKAGE_LIST}
+     */
+    @SdkConstant(SdkConstantType.BROADCAST_INTENT_ACTION)
+    public static final String ACTION_ENERGY_ALERT = "android.intent.action.ENERGY_ALERT";
+
+    /*
+     * Used as an extra string list field with {@link #ACTION_ENERGY_ALERT} which 
+     * contains list of applications categorized by energy manager as doing worse
+     * in terms of energy consumption
+     */
+    public static final String EXTRA_BAD_PACKAGE_LIST = 
+    		"android.intent.extra.BAD_PACKAGE_LIST";
+    /*
+     * Used as an extra string list field with {@link #ACTION_ENERGY_ALERT} which 
+     * contains list of applications categorized by energy manager as doing okay/
+     * moderately in terms of energy consumption
+     */
+    public static final String EXTRA_OKAY_PACKAGE_LIST = 
+    		"android.intent.extra.OKAY_PACKAGE_LIST";
+    /*
+     * Used as an extra string list field with {@link #ACTION_ENERGY_ALERT} which 
+     * contains list of applications categorized by energy manager as doing best
+     * in terms of energy consumption and can do little worse
+     */
+    public static final String EXTRA_GOOD_PACKAGE_LIST = 
+    		"android.intent.extra.GOOD_PACKAGE_LIST";
     /**
      * Broadcast Action: Sent after the screen turns off.
      *

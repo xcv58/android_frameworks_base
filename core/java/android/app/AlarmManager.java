@@ -464,6 +464,27 @@ public class AlarmManager
         setImpl(type, triggerAtMillis, WINDOW_HEURISTIC, intervalMillis, operation, null);
     }
     
+    /*
+     * to set non repeating alarm with a deadline which is the maximum time limit
+     * till which the alarm can be delayed
+     *public void setDelayed(int type, long triggerAtMillis, long deadlineMillis,
+    		PendingIntent operation) {
+    	mService.setJouler(type, triggerAtMillis, deadlineMillis, null, operation);
+    }
+    */
+    /*
+     * to set a repeating alarm with a deadline that sets the maximum limit till which
+     * the interval time can be increased if system receives increase interval alert
+     */
+    public void setAdaptive(int type, long triggerAtMillis, long maxIntervalMillis,
+    		long intervalMillis, PendingIntent operation) {
+	try {
+    		mService.setJouler(type, triggerAtMillis, WINDOW_HEURISTIC, intervalMillis, maxIntervalMillis, operation, true, null);
+	} catch (RemoteException ex) {
+        }
+
+    }
+    
     /**
      * Remove any alarms with a matching {@link Intent}.
      * Any alarm, of any type, whose Intent matches this one (as defined by

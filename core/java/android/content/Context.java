@@ -1902,6 +1902,8 @@ public abstract class Context {
      * are:
      *
      * <dl>
+     *  <dt> {@link #JOULER_SERVICE} ("jouler")
+     *  <dd> A {@link android.os.JoulerPolicy} for using knobs to manage energy.
      *  <dt> {@link #WINDOW_SERVICE} ("window")
      *  <dd> The top-level window manager in which you can place custom
      *  windows.  The returned object is a {@link android.view.WindowManager}.
@@ -1996,6 +1998,14 @@ public abstract class Context {
      * @see android.app.DownloadManager
      */
     public abstract Object getSystemService(String name);
+
+    /**
+     * Use with  {@link #getSystemService} to retrieve a 
+     * {@link android.os.JoulerPolicy} for implementing energy
+     * management policies.
+     */
+
+    public static final String JOULER_SERVICE = "jouler";
 
     /**
      * Use with {@link #getSystemService} to retrieve a

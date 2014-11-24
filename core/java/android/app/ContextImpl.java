@@ -83,7 +83,9 @@ import android.os.FileUtils;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.IPowerManager;
+import android.os.IJoulerPolicy;
 import android.os.IUserManager;
+import android.os.JoulerPolicy;
 import android.os.Looper;
 import android.os.PowerManager;
 import android.os.Process;
@@ -476,6 +478,13 @@ class ContextImpl extends Context {
                     return new PowerManager(ctx.getOuterContext(),
                             service, ctx.mMainThread.getHandler());
                 }});
+	//custom Jouler service
+	registerService(JOULER_SERVICE, new ServiceFetcher() {
+		public Object createService(ContextImpl ctx) {
+		    IBinder b = ServiceManager.getService(JOULER_SERVICE);
+		    IJoulerPolicy service = IJoulerPolicy.Stub.asInterface(b);
+		    return new JoulerPolicy(service);
+		}});
 
         registerService(SEARCH_SERVICE, new ServiceFetcher() {
                 public Object createService(ContextImpl ctx) {

@@ -109,6 +109,7 @@ class AlarmManagerService extends IAlarmManager.Stub {
     private final AlarmHandler mHandler = new AlarmHandler();
     private ClockReceiver mClockReceiver;
     private UninstallReceiver mUninstallReceiver;
+    private EnergyAlertReceiver mEnergyAlertReceiver;
     private final ResultReceiver mResultReceiver = new ResultReceiver();
     private final PendingIntent mTimeTickSender;
     private final PendingIntent mDateChangeSender;
@@ -507,7 +508,7 @@ class AlarmManagerService extends IAlarmManager.Stub {
             super.finalize();
         }
     }
-
+    
     @Override
     public void set(int type, long triggerAtTime, long windowLength, long interval,
             PendingIntent operation, WorkSource workSource) {
@@ -605,6 +606,102 @@ class AlarmManagerService extends IAlarmManager.Stub {
 
         rescheduleKernelAlarmsLocked();
     }
+    
+    public void setJouler(int type, long triggerAtTime, long windowLength, long interval,
+            long maxInterval, PendingIntent operation, boolean isStandalone, 
+            WorkSource workSource) {
+        if (operation == null) {
+            Slog.w(TAG, "set/setRepeating ignored because there is no intent");
+            return;
+        }
+
+        // Sanity check the window length.  This will catch people mistakenly
+        // trying to pass an end-of-window timestamp rather than a duration.
+        if (windowLength > AlarmManager.INTERVAL_HALF_DAY) {
+            Slog.w(TAG, "Window length " + windowLength
+                    + "ms suspiciously long; limiting to 1 hour");
+            windowLength = AlarmManager.INTERVAL_HOUR;
+        }
+
+        if (type < RTC_WAKEUP || type > ELAPSED_REALTIME) {
+            throw new IllegalArgumentException("Invalid alarm type " + type);
+        }
+
+        if (triggerAtTime < 0) {
+            final long who = Binder.getCallingUid();
+            final long what = Binder.getCallingPid();
+            Slog.w(TAG, "Invalid alarm trigger time! " + triggerAtTime + " from uid=" + who
+                    + " pid=" + what);
+            triggerAtTime = 0;
+        }
+        
+        if (maxInterval < 0 || maxInterval < interval) {
+        	final long who = Binder.getCallingUid();
+            final long what = Binder.getCallingPid();
+            Slog.w(TAG, "Invalid alarm max interval time! " + maxInterval + " from uid=" + who
+                    + " pid=" + what);
+            maxInterval = 2*interval;
+        }
+
+        final long nowElapsed = SystemClock.elapsedRealtime();
+        final long triggerElapsed = convertToElapsed(triggerAtTime, type);
+        final long maxElapsed;
+        if (windowLength == AlarmManager.WINDOW_EXACT) {
+            maxElapsed = triggerElapsed;
+        } else if (windowLength < 0) {
+            maxElapsed = maxTriggerTime(nowElapsed, triggerElapsed, interval);
+        } else {
+            maxElapsed = triggerElapsed + windowLength;
+        }
+
+        synchronized (mLock) {
+            if (DEBUG_BATCH) {
+                Slog.v(TAG, "set(" + operation + ") : type=" + type
+                        + " triggerAtTime=" + triggerAtTime + " win=" + windowLength
+                        + " tElapsed=" + triggerElapsed + " maxElapsed=" + maxElapsed
+                        + " interval=" + interval + " standalone=" + isStandalone);
+            }
+            setImplJoulerLocked(type, triggerAtTime, triggerElapsed, windowLength, maxElapsed,
+                    interval, maxInterval, operation, isStandalone, true, workSource);
+        }
+    }
+    
+    private void setImplJoulerLocked(int type, long when, long whenElapsed, long windowLength,
+            long maxWhen, long interval, long maxInterval, PendingIntent operation, boolean isStandalone,
+            boolean doValidate, WorkSource workSource) {
+        Alarm a = new Alarm(type, when, whenElapsed, windowLength, maxWhen, interval,
+                maxInterval, operation, workSource);
+        removeLocked(operation);
+
+        int whichBatch = (isStandalone) ? -1 : attemptCoalesceLocked(whenElapsed, maxWhen);
+        if (whichBatch < 0) {
+            Batch batch = new Batch(a);
+            batch.standalone = isStandalone;
+            addBatchLocked(mAlarmBatches, batch);
+        } else {
+            Batch batch = mAlarmBatches.get(whichBatch);
+            if (batch.add(a)) {
+                // The start time of this batch advanced, so batch ordering may
+                // have just been broken.  Move it to where it now belongs.
+                mAlarmBatches.remove(whichBatch);
+                addBatchLocked(mAlarmBatches, batch);
+            }
+        }
+
+        if (DEBUG_VALIDATE) {
+            if (doValidate && !validateConsistencyLocked()) {
+                Slog.v(TAG, "Tipping-point operation: type=" + type + " when=" + when
+                        + " when(hex)=" + Long.toHexString(when)
+                        + " whenElapsed=" + whenElapsed + " maxWhen=" + maxWhen
+                        + " interval=" + interval + " op=" + operation
+                        + " standalone=" + isStandalone);
+                rebatchAllAlarmsLocked(false);
+            }
+        }
+
+        rescheduleKernelAlarmsLocked();
+    }
+    
 
     private void logBatchesLocked() {
         ByteArrayOutputStream bs = new ByteArrayOutputStream(2048);
@@ -1086,6 +1183,8 @@ class AlarmManagerService extends IAlarmManager.Stub {
         public long whenElapsed;    // 'when' in the elapsed time base
         public long maxWhen;        // also in the elapsed time base
         public long repeatInterval;
+        public long minInterval = 0;
+        public long maxInterval;
         public PendingIntent operation;
         public WorkSource workSource;
         
@@ -1097,6 +1196,21 @@ class AlarmManagerService extends IAlarmManager.Stub {
             windowLength = _windowLength;
             maxWhen = _maxWhen;
             repeatInterval = _interval;
+            operation = _op;
+            workSource = _ws;
+        }
+        
+        public Alarm(int _type, long _when, long _whenElapsed, long _windowLength, long _maxWhen,
+                long _interval, long _maxInterval, PendingIntent _op, WorkSource _ws) {
+            type = _type;
+            when = _when;
+            whenElapsed = _whenElapsed;
+            windowLength = _windowLength;
+            maxWhen = _maxWhen;
+            repeatInterval = _interval;
+            maxInterval = _maxInterval;
+            if (minInterval == 0)
+            	minInterval = _interval;
             operation = _op;
             workSource = _ws;
         }
@@ -1432,6 +1546,94 @@ class AlarmManagerService extends IAlarmManager.Stub {
         }
     }
     
+    class EnergyAlertReceiver extends BroadcastReceiver {
+    	public EnergyAlertReceiver() {
+    		IntentFilter filter = new IntentFilter();
+            filter.addAction(Intent.ACTION_ENERGY_ALERT);
+            mContext.registerReceiver(this, filter);
+    	}
+    	
+    	public void onReceive(Context context, Intent intent) {
+    		String action = intent.getAction();
+    		String badPkgList[] = null;
+    		String okayPkgList[] = null;
+    		String goodPkgList[] = null;
+    		
+    		badPkgList = intent.getStringArrayExtra(Intent.EXTRA_BAD_PACKAGE_LIST);
+    		okayPkgList = intent.getStringArrayExtra(Intent.EXTRA_OKAY_PACKAGE_LIST);
+    		goodPkgList = intent.getStringArrayExtra(Intent.EXTRA_GOOD_PACKAGE_LIST);
+    		if (badPkgList != null && badPkgList.length > 0) {
+    			synchronized (mLock){
+    				final long nowRTC = System.currentTimeMillis();
+                    final long nowELAPSED = SystemClock.elapsedRealtime(); 
+	    			for (String pkg: badPkgList) {
+	    				if (lookForPackageLocked(pkg)){
+	    					increaseInterval(pkg, nowELAPSED, nowRTC);
+	    				}
+	    			}
+    			}
+    		}else if (goodPkgList != null && goodPkgList.length > 0) {
+    			synchronized(mLock) {
+    				final long nowRTC = System.currentTimeMillis();
+                    final long nowELAPSED = SystemClock.elapsedRealtime(); 
+	    			for (String pkg: badPkgList) {
+	    				if (lookForPackageLocked(pkg)){
+	    					decreaseInterval(pkg, nowELAPSED, nowRTC);
+	    				}
+	    			}
+    			}
+    		}
+    	}
+    	
+    	public void increaseInterval(String pkgName, long nowElapsed, long nowRTC) {
+    		final int N = mAlarmBatches.size();
+    		for(int i=0; i<N; i++) {
+    			Batch b = mAlarmBatches.get(i);
+    			if (b.start < nowElapsed || !b.hasPackage(pkgName))
+    				continue;
+    			int L = b.size();
+    			for(int j=0; j<L; j++) {
+    				Alarm alarm = b.get(j);
+    				if(alarm.operation.getTargetPackage() != pkgName)
+    					continue;
+    				if (alarm.repeatInterval > 0 && alarm.repeatInterval < alarm.maxInterval) {
+    					long delta = (long) ((alarm.maxInterval - alarm.repeatInterval) / 4.0);
+    					if (delta < 1000)
+    						delta = (alarm.maxInterval - alarm.repeatInterval);
+    					long maxElapsed = maxTriggerTime(nowRTC, nowElapsed, alarm.repeatInterval+delta);
+                        setImplJoulerLocked(alarm.type, alarm.when, alarm.whenElapsed, alarm.windowLength,
+                        		maxElapsed, alarm.repeatInterval + delta, alarm.maxInterval,alarm.operation, 
+                        		b.standalone, true, alarm.workSource);
+    				}
+    			}
+    		}
+    	}
+    	
+    	public void decreaseInterval(String pkgName, long nowElapsed, long nowRTC) {
+    		final int N = mAlarmBatches.size();
+    		for(int i=0; i<N; i++) {
+    			Batch b = mAlarmBatches.get(i);
+    			if (b.start < nowElapsed || !b.hasPackage(pkgName))
+    				continue;
+    			int L = b.size();
+    			for(int j=0; j<L; j++) {
+    				Alarm alarm = b.get(j);
+    				if(alarm.operation.getTargetPackage() != pkgName)
+    					continue;
+    				if (alarm.repeatInterval > 0 && alarm.repeatInterval > alarm.minInterval) {
+    					long delta = (long) ((alarm.repeatInterval - alarm.minInterval) / 4.0);
+    					if (delta < 1000)
+    						delta = (alarm.repeatInterval - alarm.minInterval);
+    					long maxElapsed = maxTriggerTime(nowRTC, nowElapsed, alarm.repeatInterval-delta);
+                        setImplJoulerLocked(alarm.type, alarm.when, alarm.whenElapsed, alarm.windowLength,
+                        		maxElapsed, alarm.repeatInterval-delta, alarm.maxInterval,alarm.operation, 
+                        		b.standalone, true, alarm.workSource);
+    				}
+    			}
+    		}
+    	}
+    }
+    
     private final BroadcastStats getStatsLocked(PendingIntent pi) {
         String pkg = pi.getTargetPackage();
         BroadcastStats bs = mBroadcastStats.get(pkg);
@@ -1475,7 +1677,7 @@ class AlarmManagerService extends IAlarmManager.Stub {
                     mWakeLock.release();
                     if (mInFlight.size() > 0) {
                         mLog.w("Finished all broadcasts with " + mInFlight.size()
-                                + " remaining inflights");
+                                + " remaining inflipublic void onReceive(Context context, Intent intent) {ghts");
                         for (int i=0; i<mInFlight.size(); i++) {
                             mLog.w("  Remaining #" + i + ": " + mInFlight.get(i));
                         }

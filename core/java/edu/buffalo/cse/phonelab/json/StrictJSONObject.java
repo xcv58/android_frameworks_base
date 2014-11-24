@@ -35,7 +35,7 @@ import org.json.JSONArray;
  * Also, this object provides a {@code log} method, which will log out the JSON
  * string to logcat, with specified tag.
  *
- * @hide
+ * 
  */
 public class StrictJSONObject {
     public static final String LOG_FORMAT = "1.0";

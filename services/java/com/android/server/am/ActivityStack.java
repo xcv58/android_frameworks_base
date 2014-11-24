@@ -73,9 +73,11 @@ import android.os.SystemClock;
 import android.os.Trace;
 import android.os.UserHandle;
 import android.util.EventLog;
+import android.util.Log;
 import android.util.Slog;
+import android.os.ServiceManager;
 import android.view.Display;
-
+import com.android.internal.os.PkgUsageStats;
 import java.io.FileDescriptor;
 import java.io.PrintWriter;
 import java.lang.ref.WeakReference;
@@ -760,6 +762,30 @@ final class ActivityStack {
                 mService.updateUsageStats(prev, false);
                 prev.app.thread.schedulePauseActivity(prev.appToken, prev.finishing,
                         userLeaving, prev.configChangeFlags);
+              //JoulerPolicyService
+                try{
+                        JoulerPolicyService joulerObj = (JoulerPolicyService) ServiceManager.getService("jouler");
+
+                        PkgUsageStats pkgStats = mService.mUsageStatsService.getPkgUsageStats(prev.realActivity);
+                        if (pkgStats != null) {
+                                String jPkg = prev.realActivity.getPackageName();
+                                int jCount = pkgStats.launchCount;
+                                long jUsage = pkgStats.usageTime;
+                                joulerObj.updateLaunchForPkg(jPkg, jCount, jUsage);
+                                Log.i("JoulerDebug","package "+jPkg+" : "+jCount+" , "+jUsage);
+                        }
+                        else {
+                                Log.e("JoulerDebug","Pausing: usageStats is null, wtf s happening?? "+prev.realActivity.getPackageName());
+                        }
+                        joulerObj.stopFgMonitor(prev.app.uid);
+                        //Log.i("JoulerDebug","Pausing:"+prev.packageName);
+
+                } catch(Exception e) {
+                        Log.e("JoulerDebug","Error at pausing: "+e.getMessage());
+                }
+
+
+
             } catch (Exception e) {
                 // Ignore exception, if process died other code will cleanup.
                 Slog.w(TAG, "Exception thrown during pause", e);
@@ -1587,6 +1613,17 @@ final class ActivityStack {
                 next.app.forceProcessStateUpTo(ActivityManager.PROCESS_STATE_TOP);
                 next.app.thread.scheduleResumeActivity(next.appToken, next.app.repProcState,
                         mService.isNextTransitionForward());
+
+		//JoulerPolicyService
+                try {
+                     JoulerPolicyService joulerObj = (JoulerPolicyService) ServiceManager.getService("jouler");
+                     joulerObj.startFgMonitor(next.app.uid);
+                     //Log.i("JoulerDebug","Resuming "+next.packageName);
+		 }catch (Exception e) {
+                     Log.e("JoulerDebug", "***Inside Activity Stack: on Resuming for "+ next.packageName+ " "+e.getMessage());
+                }
+
+
 
                 mStackSupervisor.checkReadyForSleepLocked();
 

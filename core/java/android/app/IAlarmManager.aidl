@@ -31,6 +31,8 @@ interface IAlarmManager {
     void setTime(long millis);
     void setTimeZone(String zone);
     void remove(in PendingIntent operation);
+    void setJouler(int type, long triggerAtTime, long windowLength, long interval, long maxintervalinmillis, in PendingIntent operation, boolean isStandAlone, in WorkSource workSource);
+
 }
 
 

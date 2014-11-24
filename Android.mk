@@ -152,6 +152,7 @@ LOCAL_SRC_FILES += \
 	core/java/android/os/IBatteryPropertiesRegistrar.aidl \
 	core/java/android/os/ICancellationSignal.aidl \
 	core/java/android/os/IHardwareService.aidl \
+        core/java/android/os/IJoulerPolicy.aidl \
 	core/java/android/os/IMessenger.aidl \
 	core/java/android/os/INetworkManagementService.aidl \
 	core/java/android/os/IPermissionController.aidl \
@@ -371,6 +372,7 @@ aidl_files := \
 	frameworks/base/core/java/android/os/Bundle.aidl \
 	frameworks/base/core/java/android/os/DropBoxManager.aidl \
 	frameworks/base/core/java/android/os/ParcelFileDescriptor.aidl \
+	frameworks/base/core/java/android/os/IJoulerPolicy.aidl \
 	frameworks/base/core/java/android/os/ParcelUuid.aidl \
 	frameworks/base/core/java/android/view/KeyEvent.aidl \
 	frameworks/base/core/java/android/view/MotionEvent.aidl \
