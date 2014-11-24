@@ -17865,6 +17865,23 @@ package android.os {
     method public abstract android.os.IBinder asBinder();
   }
 
+  public abstract interface IJoulerPolicy implements android.os.IInterface {
+    method public abstract void broadcastAlertIntent(java.util.List<java.lang.String>, java.util.List<java.lang.String>, java.util.List<java.lang.String>) throws android.os.RemoteException;
+    method public abstract void controlCpuMaxFrequency(int) throws android.os.RemoteException;
+    method public abstract int[] getAllCpuFrequencies() throws android.os.RemoteException;
+    method public abstract byte[] getStatistics() throws android.os.RemoteException;
+    method public abstract void rateLimitForUid(int) throws android.os.RemoteException;
+    method public abstract void resetPriority(int, int) throws android.os.RemoteException;
+    method public abstract void setDelayedTask(android.app.PendingIntent, int) throws android.os.RemoteException;
+  }
+
+  public static abstract class IJoulerPolicy.Stub extends android.os.Binder implements android.os.IJoulerPolicy {
+    ctor public IJoulerPolicy.Stub();
+    method public android.os.IBinder asBinder();
+    method public static android.os.IJoulerPolicy asInterface(android.os.IBinder);
+    method public boolean onTransact(int, android.os.Parcel, android.os.Parcel, int) throws android.os.RemoteException;
+  }
+
   public final class JoulerPolicy {
     method public void broadcastAlertIntent(java.util.List<java.lang.String>, java.util.List<java.lang.String>, java.util.List<java.lang.String>);
     method public void controlCpuMaxFrequency(int);
@@ -17873,7 +17890,6 @@ package android.os {
     method public void rateLimitForUid(int);
     method public void resetPriority(int, int);
     method public void setDelayedTask(android.app.PendingIntent, int);
-    method public void setScreenBrightness(int);
   }
 
   public final class JoulerStats implements android.os.Parcelable {
