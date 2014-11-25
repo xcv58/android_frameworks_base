@@ -839,9 +839,9 @@ public class JoulerPolicyService extends IJoulerPolicy.Stub {
 			throws RemoteException {
 		//mContext.enforceCallingPermission(android.Manifest.permission.ACCESS_JOULER, null);
 		//enforceCallingPermission();
-		ArrayList<String> badPkgs = (ArrayList<String>) badPackages;
-		ArrayList<String> okayPkgs = (ArrayList<String>) okayPackages;
-		ArrayList<String> goodPkgs = (ArrayList<String>) goodPackages;
+		badPkgs = (ArrayList<String>) badPackages;
+		okayPkgs = (ArrayList<String>) okayPackages;
+		goodPkgs = (ArrayList<String>) goodPackages;
 		Intent intent = new Intent(Intent.ACTION_ENERGY_ALERT);
 		intent.putExtra("EXTRA_BAD_PACKAGE_LIST", badPkgs);
 		intent.putExtra("EXTRA_OKAY_PACKAGE_LIST", okayPkgs);
