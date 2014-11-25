@@ -47,7 +47,9 @@ import android.hardware.SensorManager;
 import android.os.BatteryManager;
 import android.os.BatteryStats;
 import android.os.Handler;
+import android.os.Binder;
 import android.os.IBinder;
+import android.os.Process;
 import android.os.Parcel;
 import android.os.RemoteException;
 import android.os.ServiceManager;
@@ -137,6 +139,8 @@ public class JoulerPolicyService extends IJoulerPolicy.Stub {
 						}
 					
 					}
+				}else{
+					updateStats();
 				}
 			}
 			else {
@@ -183,7 +187,7 @@ public class JoulerPolicyService extends IJoulerPolicy.Stub {
         	 return;
         
         try {
-			Process cmd = new ProcessBuilder(new String[]{"sh","-c","/system/bin/cat  sys/devices/system/cpu/cpu0/cpufreq/scaling_available_frequencies"})
+			java.lang.Process cmd = new ProcessBuilder(new String[]{"sh","-c","/system/bin/cat  sys/devices/system/cpu/cpu0/cpufreq/scaling_available_frequencies"})
 					.redirectErrorStream(true).start();
 			InputStream in = cmd.getInputStream();
 			BufferedReader buf = new BufferedReader(new InputStreamReader(in));
@@ -740,7 +744,7 @@ public class JoulerPolicyService extends IJoulerPolicy.Stub {
 	
 	//@Override
 	public byte[] getStatistics() throws RemoteException {
-		mContext.enforceCallingPermission(android.Manifest.permission.ACCESS_JOULER, null);
+		//mContext.enforceCallingPermission(android.Manifest.permission.ACCESS_JOULER, null);
 		Parcel out = Parcel.obtain();
         	joulerStats.writeToParcel(out, 0);
         	byte[] data = out.marshall();
@@ -750,9 +754,9 @@ public class JoulerPolicyService extends IJoulerPolicy.Stub {
 
 	//@Override
 	public void controlCpuMaxFrequency(int freq) throws RemoteException {
-		mContext.enforceCallingPermission(android.Manifest.permission.ACCESS_JOULER, null);
+		//mContext.enforceCallingPermission(android.Manifest.permission.ACCESS_JOULER, null);
 		try {
-			Process cmd = new ProcessBuilder(new String[]{"sh","-c","/system/xbin/echo "+freq+" > sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq"})
+			java.lang.Process cmd = new ProcessBuilder(new String[]{"sh","-c","/system/xbin/echo "+freq+" > sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq"})
 					.redirectErrorStream(true).start();
 			InputStream in = cmd.getInputStream();
 			BufferedReader buf = new BufferedReader(new InputStreamReader(in));
@@ -771,7 +775,7 @@ public class JoulerPolicyService extends IJoulerPolicy.Stub {
 	
 	//@Override
 	public int[] getAllCpuFrequencies() {
-		mContext.enforceCallingPermission(android.Manifest.permission.ACCESS_JOULER, null);
+		//mContext.enforceCallingPermission(android.Manifest.permission.ACCESS_JOULER, null);
 		int[] cpu = new int[cpuFrequency.size()];
 		for(int i=0; i < cpuFrequency.size(); i++)
 			cpu[i] = cpuFrequency.get(i);
@@ -793,7 +797,7 @@ public class JoulerPolicyService extends IJoulerPolicy.Stub {
 	
 	//@Override
 	public void rateLimitForUid(int uid) throws RemoteException {
-		mContext.enforceCallingPermission(android.Manifest.permission.ACCESS_JOULER, null);
+		//mContext.enforceCallingPermission(android.Manifest.permission.ACCESS_JOULER, null);
 		UidStats uStats = joulerStats.mUidArray.get(uid);
 		if (uStats.getThrottle()) {
 			delRateLimitRule(uid);
@@ -855,15 +859,17 @@ public class JoulerPolicyService extends IJoulerPolicy.Stub {
 	//@Override
 	public void broadcastAlertIntent(List<String> badPackages, List<String> okayPackages, List<String> goodPackages)
 			throws RemoteException {
-		mContext.enforceCallingPermission(android.Manifest.permission.ACCESS_JOULER, null);
-		badPkgs = (ArrayList<String>) badPackages;
-		okayPkgs = (ArrayList<String>) okayPackages;
-		goodPkgs = (ArrayList<String>) goodPackages;
+		//mContext.enforceCallingPermission(android.Manifest.permission.BATTERY_STATS, null);
+		//enforceCallingPermission();
+		ArrayList<String> badPkgs = (ArrayList<String>) badPackages;
+		ArrayList<String> okayPkgs = (ArrayList<String>) okayPackages;
+		ArrayList<String> goodPkgs = (ArrayList<String>) goodPackages;
 		Intent intent = new Intent(Intent.ACTION_ENERGY_ALERT);
 		intent.putExtra("EXTRA_BAD_PACKAGE_LIST", badPkgs);
 		intent.putExtra("EXTRA_OKAY_PACKAGE_LIST", okayPkgs);
 		intent.putExtra("EXTRA_GOOD_PACKAGE_LIST", goodPkgs);
 		intent.putExtra("EXTRA_TIME", SystemClock.elapsedRealtime());
+		Log.i("AdaptiveTimer", badPkgs.toString());
 		mContext.sendStickyBroadcastAsUser(intent, UserHandle.OWNER);
 		
 	}
@@ -906,7 +912,7 @@ public class JoulerPolicyService extends IJoulerPolicy.Stub {
 
 	//@Override
 	public void resetPriority(int uid, int priority){
-		mContext.enforceCallingPermission(android.Manifest.permission.ACCESS_JOULER, null);
+		//mContext.enforceCallingPermission(android.Manifest.permission.ACCESS_JOULER, null);
 		String userName;
 		if(uid == 0)
 			userName = "root";
@@ -916,7 +922,7 @@ public class JoulerPolicyService extends IJoulerPolicy.Stub {
 			userName = "u0_a"+(uid%10000);
 		int pid = -1;
 		try {
-			Process cmd = new ProcessBuilder(new String[]{"sh","-c","/system/bin/ps | grep "+userName})
+			java.lang.Process cmd = new ProcessBuilder(new String[]{"sh","-c","/system/bin/ps | grep "+userName})
 							.redirectErrorStream(true)
 						    .start();
 			InputStream in = cmd.getInputStream();
@@ -949,7 +955,7 @@ public class JoulerPolicyService extends IJoulerPolicy.Stub {
 	public ArrayList<Integer> getMyThreadId(int pid){
 		ArrayList<Integer> threadId = new ArrayList<Integer>();
 		try {
-			Process cmd = new ProcessBuilder(new String[]{"sh","-c","/system/bin/ls /proc/"+pid+"/task/ "})
+			java.lang.Process cmd = new ProcessBuilder(new String[]{"sh","-c","/system/bin/ls /proc/"+pid+"/task/ "})
 			.redirectErrorStream(true)
 		    .start();
 			InputStream in = cmd.getInputStream();
@@ -971,6 +977,15 @@ public class JoulerPolicyService extends IJoulerPolicy.Stub {
 		return threadId;
 	}
 	
+	public void enforceCallingPermission() {
+        	if (Binder.getCallingPid() == Process.myPid()) {
+            		return;
+        	}
+        	Log.i("AdaptiveTimer", "pid: "+Binder.getCallingPid() +" uid :"+Binder.getCallingUid());
+        	mContext.enforcePermission(android.Manifest.permission.ACCESS_JOULER,
+                	Binder.getCallingPid(), Binder.getCallingUid(), null);
+    	}
+
 	
 	private void prepareNativeDaemon() {
         mBandwidthControlEnabled = false;
