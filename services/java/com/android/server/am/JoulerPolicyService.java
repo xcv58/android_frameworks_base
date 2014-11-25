@@ -798,6 +798,9 @@ public class JoulerPolicyService extends IJoulerPolicy.Stub {
 	//@Override
 	public void rateLimitForUid(int uid) throws RemoteException {
 		//mContext.enforceCallingPermission(android.Manifest.permission.ACCESS_JOULER, null);
+		if (joulerStats == null || joulerStats.mUidArray.size() == 0 || joulerStats.mUidArray.indexOfKey(uid) < 0)
+                        return;
+
 		UidStats uStats = joulerStats.mUidArray.get(uid);
 		if (uStats.getThrottle()) {
 			delRateLimitRule(uid);
@@ -830,36 +833,11 @@ public class JoulerPolicyService extends IJoulerPolicy.Stub {
         }
 	}
 	
-	
 
-/*	//@Override
-	public void setScreenBrightness(int brightness) throws RemoteException {
-		mContext.enforceCallingPermission(android.Manifest.permission.ACCESS_JOULER, null);
-		if (brightness < 0 || brightness > 255)
-			return;
-		try {
-			Process cmd = new ProcessBuilder(new String[]{"sh","-c","/system/xbin/echo "+ brightness+" > sys/class/backlight/lm3630/brightness"})
-							.redirectErrorStream(true)
-						    .start();
-			InputStream in = cmd.getInputStream();
-			BufferedReader buf = new BufferedReader(new InputStreamReader(in));
-			String line;
-			while((line=buf.readLine()) != null){
-		         Log.i(TAG,"sys/class/backlight/lm3630/brightness " + line );
-			}
-		    
-		    in.close();
-			
-		}catch (Exception e) {
-			Log.e(TAG, "Brightness info "+e.getMessage());
-		}
-		
-	}
-*/
 	//@Override
 	public void broadcastAlertIntent(List<String> badPackages, List<String> okayPackages, List<String> goodPackages)
 			throws RemoteException {
-		//mContext.enforceCallingPermission(android.Manifest.permission.BATTERY_STATS, null);
+		//mContext.enforceCallingPermission(android.Manifest.permission.ACCESS_JOULER, null);
 		//enforceCallingPermission();
 		ArrayList<String> badPkgs = (ArrayList<String>) badPackages;
 		ArrayList<String> okayPkgs = (ArrayList<String>) okayPackages;
@@ -913,6 +891,9 @@ public class JoulerPolicyService extends IJoulerPolicy.Stub {
 	//@Override
 	public void resetPriority(int uid, int priority){
 		//mContext.enforceCallingPermission(android.Manifest.permission.ACCESS_JOULER, null);
+		if (joulerStats == null || joulerStats.mUidArray.size() == 0 || joulerStats.mUidArray.indexOfKey(uid) < 0)
+                        return;
+
 		String userName;
 		if(uid == 0)
 			userName = "root";
