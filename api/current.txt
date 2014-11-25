@@ -17872,7 +17872,6 @@ package android.os {
     method public byte[] getStatistics() throws android.os.RemoteException;
     method public void rateLimitForUid(int);
     method public void resetPriority(int, int);
-    method public void setScreenBrightness(int);
   }
 
   public final class JoulerStats implements android.os.Parcelable {
