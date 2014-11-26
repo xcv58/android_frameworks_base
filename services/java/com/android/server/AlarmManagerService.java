@@ -1583,7 +1583,8 @@ class AlarmManagerService extends IAlarmManager.Stub {
 	    				}
 	    			}
     			}
-    		}else if (goodPkgList != null && goodPkgList.size() > 0) {
+    		}
+		if (goodPkgList != null && goodPkgList.size() > 0) {
     			synchronized(mLock) {
     				final long nowRTC = System.currentTimeMillis();
                     		final long nowELAPSED = SystemClock.elapsedRealtime(); 

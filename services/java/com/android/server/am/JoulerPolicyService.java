@@ -847,7 +847,7 @@ public class JoulerPolicyService extends IJoulerPolicy.Stub {
 		intent.putExtra("EXTRA_OKAY_PACKAGE_LIST", okayPkgs);
 		intent.putExtra("EXTRA_GOOD_PACKAGE_LIST", goodPkgs);
 		intent.putExtra("EXTRA_TIME", SystemClock.elapsedRealtime());
-		Log.i("AdaptiveTimer", badPkgs.toString());
+		
 		mContext.sendStickyBroadcastAsUser(intent, UserHandle.OWNER);
 		
 	}
