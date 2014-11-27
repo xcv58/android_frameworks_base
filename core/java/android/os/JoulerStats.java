@@ -359,14 +359,14 @@ public final class JoulerStats implements Parcelable{
 	}
 	
 	public final class SystemStats {
-		float mLastDischargeRate;
-		float mCurrDischargeRate;
-		float mLastFgDischargeRate;
-		float mCurrFgDischargeRate;
-		float mLastBgDischargeRate;
-		float mCurrBgDischargeRate;
+		double mLastDischargeRate;
+		double mCurrDischargeRate;
+		double mLastFgDischargeRate;
+		double mCurrFgDischargeRate;
+		double mLastBgDischargeRate;
+		double mCurrBgDischargeRate;
 		long mLastChargeDuration;
-		float mLastChargeRate;
+		double mLastChargeRate;
 		boolean lowPowerState;
 		long totalScreenOnTime;
 		long totalScreenOffTime;
@@ -379,16 +379,21 @@ public final class JoulerStats implements Parcelable{
 		double idleEnergy;
 		double radioEnergy;
 		double bluetoothEnergy;
+
+		public long getUptime(){
+			return upTime;
+		}
+
 		
-		public float getCurrentDischargeRate(){
+		public double getCurrentDischargeRate(){
 			return mCurrDischargeRate;
 		}
 		
-		public float getCurrentFgDischargeRate(){
+		public double getCurrentFgDischargeRate(){
 			return mCurrFgDischargeRate;
 		}
 		
-		public float getCurrentBgDischargeRate(){
+		public double getCurrentBgDischargeRate(){
 			return mCurrBgDischargeRate;
 		}
 		
@@ -444,21 +449,21 @@ public final class JoulerStats implements Parcelable{
 			if(upTime == 0)
 				return ;
 			mLastDischargeRate = mCurrDischargeRate;
-			mCurrDischargeRate = discharge/upTime;
+			mCurrDischargeRate = (double)discharge/(double)upTime;
 		}
 		
 		public void updateForegroundDischargeRate(int discharge){
 			if (totalScreenOnTime == 0)
 				return;
 			mLastFgDischargeRate = mCurrFgDischargeRate; 
-			mCurrFgDischargeRate = discharge/totalScreenOnTime;
+			mCurrFgDischargeRate = (double)discharge/(double)totalScreenOnTime;
 		}
 		
 		public void updateBackgroundDischargeRate(int discharge){
 			if (totalScreenOffTime == 0)
 				return;
 			mLastBgDischargeRate = mCurrBgDischargeRate;
-			mCurrBgDischargeRate = discharge/totalScreenOffTime;
+			mCurrBgDischargeRate = (double)discharge/(double)totalScreenOffTime;
 		}
 		
 		public double updateEnergy(double screen, double phone, double radio, double wifi, double idle, double bluetooth){
@@ -479,23 +484,23 @@ public final class JoulerStats implements Parcelable{
 			totalScreenOnTime = 0;
 			upTime = 0;
 			mLastDischargeRate = mCurrDischargeRate;
-			mCurrDischargeRate = 0;
+			mCurrDischargeRate = 0.0;
 			mLastFgDischargeRate = mCurrFgDischargeRate;
-			mCurrFgDischargeRate = 0;
+			mCurrFgDischargeRate = 0.0;
 			mLastBgDischargeRate = mCurrBgDischargeRate;
-			mCurrBgDischargeRate = 0;
+			mCurrBgDischargeRate = 0.0;
 			screenEnergy = phoneEnergy = radioEnergy = wifiEnergy = idleEnergy = bluetoothEnergy = 0.0;
 		}
 		
 		public void clear(){
-			mLastDischargeRate = 0;
-			mCurrDischargeRate = 0;
-			mLastFgDischargeRate = 0;
-			mCurrFgDischargeRate = 0;
-			mLastBgDischargeRate= 0;
-			mCurrBgDischargeRate = 0;
+			mLastDischargeRate = 0.0;
+			mCurrDischargeRate = 0.0;
+			mLastFgDischargeRate = 0.0;
+			mCurrFgDischargeRate = 0.0;
+			mLastBgDischargeRate= 0.0;
+			mCurrBgDischargeRate = 0.0;
 			mLastChargeDuration = 0;
-			mLastChargeRate = 0;
+			mLastChargeRate = 0.0;
 			lowPowerState = false;
 			totalScreenOnTime = 0;
 			totalScreenOffTime = 0;
@@ -506,12 +511,12 @@ public final class JoulerStats implements Parcelable{
 		}
 		
 		public void writeToParcel(Parcel dest){
-			dest.writeFloat(mLastDischargeRate);
-			dest.writeFloat(mCurrDischargeRate);
-			dest.writeFloat(mLastFgDischargeRate);
-			dest.writeFloat(mCurrFgDischargeRate);
-			dest.writeFloat(mLastBgDischargeRate);
-			dest.writeFloat(mCurrBgDischargeRate);
+			dest.writeDouble(mLastDischargeRate);
+			dest.writeDouble(mCurrDischargeRate);
+			dest.writeDouble(mLastFgDischargeRate);
+			dest.writeDouble(mCurrFgDischargeRate);
+			dest.writeDouble(mLastBgDischargeRate);
+			dest.writeDouble(mCurrBgDischargeRate);
 			dest.writeLong(totalScreenOnTime);
 			dest.writeLong(totalScreenOffTime);
 			dest.writeLong(upTime);
@@ -526,12 +531,12 @@ public final class JoulerStats implements Parcelable{
 		}
 		
 		public void readFromParcel(Parcel src) {
-			mLastDischargeRate = src.readFloat();
-			mCurrDischargeRate = src.readFloat();
-			mLastFgDischargeRate = src.readFloat();
-			mCurrFgDischargeRate = src.readFloat();
-			mLastBgDischargeRate = src.readFloat();
-			mCurrBgDischargeRate = src.readFloat();
+			mLastDischargeRate = src.readDouble();
+			mCurrDischargeRate = src.readDouble();
+			mLastFgDischargeRate = src.readDouble();
+			mCurrFgDischargeRate = src.readDouble();
+			mLastBgDischargeRate = src.readDouble();
+			mCurrBgDischargeRate = src.readDouble();
 			totalScreenOnTime = src.readLong();
 			totalScreenOffTime = src.readLong();
 			upTime = src.readLong();

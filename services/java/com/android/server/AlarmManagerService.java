@@ -1589,7 +1589,9 @@ class AlarmManagerService extends IAlarmManager.Stub {
     				final long nowRTC = System.currentTimeMillis();
                     		final long nowELAPSED = SystemClock.elapsedRealtime(); 
 	    			for (String pkg: goodPkgList) {
+					Log.i("testforbug", "#1 "+pkg);
 	    				if (lookForPackageLocked(pkg)){
+						Log.i("testforbug", "#2 "+pkg);
 	    					decreaseInterval(pkg, nowELAPSED, nowRTC);
 	    				}
 	    			}
@@ -1616,7 +1618,8 @@ class AlarmManagerService extends IAlarmManager.Stub {
     				if(!alarm.operation.getTargetPackage().equals(pkgName))
     					continue;
 				//Log.i("AdaptiveTimer", "#2 "+alarm.repeatInterval+" : "+alarm.maxInterval);
-				
+				if(alarm.maxInterval == 0)
+					continue;	//this alarm doesnot use setAdaptive	
     				if (alarm.repeatInterval > 0 && alarm.repeatInterval < alarm.maxInterval) {
     					long delta = (long) ((alarm.maxInterval - alarm.repeatInterval) / 4.0);
     					if (delta < 5000)
@@ -1643,6 +1646,8 @@ class AlarmManagerService extends IAlarmManager.Stub {
     				Alarm alarm = b.get(j);
     				if(!alarm.operation.getTargetPackage().equals(pkgName))
     					continue;
+				if(alarm.maxInterval == 0)
+                                        continue;       //this alarm doesnot use setAdaptive    
     				if (alarm.repeatInterval > 0 && alarm.repeatInterval > alarm.minInterval) {
     					long delta = (long) ((alarm.repeatInterval - alarm.minInterval) / 4.0);
     					if (delta < 5000)
