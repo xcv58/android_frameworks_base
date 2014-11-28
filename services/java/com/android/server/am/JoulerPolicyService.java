@@ -484,12 +484,15 @@ public class JoulerPolicyService extends IJoulerPolicy.Stub {
 	//Update generic battery discharge info
 	public long getUpTime(BatteryStatsImpl mStats) {
 		long uSec = mStats.computeBatteryRealtime(SystemClock.elapsedRealtime() * 1000, BatteryStats.STATS_SINCE_CHARGED);
-		return mStats.getBatteryRealtime(uSec);
+		//long uSec = mStats.computeBatteryUptime(SystemClock.uptimeMillis() * 1000,BatteryStats.STATS_SINCE_CHARGED);
+
+		return uSec/1000;
 	}
 	
 
 	public int getTotalDischarge(BatteryStatsImpl mStats){
 		int discharge = mStats.getHighDischargeAmountSinceCharge();
+		Log.i(TAG, "discharge="+mStats.getHighDischargeAmountSinceCharge());
 		return discharge;
 		
 	}
@@ -918,6 +921,8 @@ public class JoulerPolicyService extends IJoulerPolicy.Stub {
 			}
 		    
 		    in.close();
+		    if(pid == -1)
+			return;
 		    ArrayList<Integer>tidAll = getMyThreadId(pid);
 		    for(int tid: tidAll){
 		    	if(tid !=-1 && ( priority < 21 && priority > -20)){

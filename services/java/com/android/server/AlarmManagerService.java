@@ -1604,8 +1604,11 @@ class AlarmManagerService extends IAlarmManager.Stub {
     	
     	public void increaseInterval(String pkgName, long nowElapsed, long nowRTC) {
     		final int N = mAlarmBatches.size();
-		//Log.i("AdaptiveTimer", "#2 N = "+N);
+		Log.i("AdaptiveTimer", "#1 N = "+N);
     		for(int i=0; i<N; i++) {
+			Log.i("AdaptiveTimer", "#2 N = "+mAlarmBatches.size()+" i = "+i);
+			if(i==mAlarmBatches.size())
+				break;
     			Batch b = mAlarmBatches.get(i);
     			if (b.start < nowElapsed || !b.hasPackage(pkgName))
     				continue;
@@ -1638,6 +1641,8 @@ class AlarmManagerService extends IAlarmManager.Stub {
     	public void decreaseInterval(String pkgName, long nowElapsed, long nowRTC) {
     		final int N = mAlarmBatches.size();
     		for(int i=0; i<N; i++) {
+                        if(i==mAlarmBatches.size())
+                                break;
     			Batch b = mAlarmBatches.get(i);
     			if (b.start < nowElapsed || !b.hasPackage(pkgName))
     				continue;
