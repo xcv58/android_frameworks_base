@@ -23,6 +23,7 @@ import java.util.Map;
 import java.util.StringTokenizer;
 import java.util.concurrent.CountDownLatch;
 import java.util.Calendar;
+import java.util.Collections;
 
 import com.android.internal.app.IBatteryStats;
 import com.android.internal.os.BatteryStatsImpl;
@@ -890,6 +891,57 @@ public class JoulerPolicyService extends IJoulerPolicy.Stub {
 		}
 		return false;
 	}
+
+	public int getPriority(int uid){
+		int priority = -100;
+		ArrayList<Integer> priorityAll = new ArrayList<Integer>();
+		if (joulerStats == null || joulerStats.mUidArray.size() == 0 || joulerStats.mUidArray.indexOfKey(uid) < 0)
+                        return priority;
+
+                String userName;
+                if(uid == 0)
+                        userName = "root";
+                else if(uid <= 10000)
+                        userName = "system";
+                else
+                        userName = "u0_a"+(uid%10000);
+                int pid = -1;
+                try {
+                        java.lang.Process cmd = new ProcessBuilder(new String[]{"sh","-c","/system/bin/ps | grep "+userName})
+                                                        .redirectErrorStream(true)
+                                                    .start();
+                        InputStream in = cmd.getInputStream();
+                        BufferedReader buf = new BufferedReader(new InputStreamReader(in));
+                        String line;
+                        while((line=buf.readLine()) != null){
+                        	Log.i(TAG,"getting matched entry: " + line );
+                        	String token[] = line.split("\\s+");
+
+                        	pid = Integer.parseInt(token[1]);
+                        	Log.i(TAG, "PID="+pid);
+                        }
+
+                    in.close();
+                    if(pid == -1)
+                        return priority;
+                    ArrayList<Integer>tidAll = getMyThreadId(pid);
+
+                    for(int tid: tidAll){
+                        if(tid !=-1 && ( priority < 21 && priority > -20)){
+                                Log.i(TAG,"Priority for "+tid+" = "+android.os.Process.getThreadPriority(tid));
+                                priorityAll.add(android.os.Process.getThreadPriority(tid));
+                            }
+                    }
+		if(priorityAll.size() > 0)
+			priority = Collections.min(priorityAll);
+
+                }catch (Exception e) {
+                        Log.e(TAG, "Process info "+e.getMessage());
+                }
+
+		return priority;
+
+	}	
 
 	//@Override
 	public void resetPriority(int uid, int priority){

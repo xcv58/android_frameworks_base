@@ -61,6 +61,16 @@ public final class JoulerPolicy
 
     }
 
+     public int getPriority(int uid) {
+	 try {
+                int prio = mService.getPriority(uid);
+		return prio;
+        } catch (RemoteException ex) {
+		return -100;
+        }
+
+     }
+
      public void resetPriority(int uid, int priority) {
         try {
                 mService.resetPriority(uid, priority);
@@ -68,15 +78,7 @@ public final class JoulerPolicy
         }
 
     }
-/*
-    public void setScreenBrightness(int brightness) {
-        try {
-                mService.setScreenBrightness(brightness);
-        } catch (RemoteException ex) {
-        }
 
-    }
-*/
     public void rateLimitForUid(int uid) {
         try {
                 mService.rateLimitForUid(uid);
