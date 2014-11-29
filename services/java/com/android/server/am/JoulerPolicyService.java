@@ -793,6 +793,7 @@ public class JoulerPolicyService extends IJoulerPolicy.Stub {
 			Log.i(TAG,"Setting bandwidth rules");
             long quotaBytes = 999999999;
             mConnector.execute("bandwidth", "setiquota", "wlan0", quotaBytes);
+	    mConnector.execute("bandwidth", "setiquota", "rmnet0", quotaBytes);
             
         } catch (NativeDaemonConnectorException e) {
             throw e.rethrowAsParcelableException();
@@ -815,7 +816,6 @@ public class JoulerPolicyService extends IJoulerPolicy.Stub {
 		}
 		
 		joulerStats.mUidArray.put(uid, uStats);
-		
 		
 	}
 	
