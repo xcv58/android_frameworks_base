@@ -927,7 +927,7 @@ public class JoulerPolicyService extends IJoulerPolicy.Stub {
                     ArrayList<Integer>tidAll = getMyThreadId(pid);
 
                     for(int tid: tidAll){
-                        if(tid !=-1 && ( priority < 21 && priority > -20)){
+                        if(tid !=-1){
                                 Log.i(TAG,"Priority for "+tid+" = "+android.os.Process.getThreadPriority(tid));
                                 priorityAll.add(android.os.Process.getThreadPriority(tid));
                             }
