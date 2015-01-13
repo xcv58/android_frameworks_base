@@ -1832,12 +1832,12 @@
         android:protectionLevel="signature|system|development" />
 
     <!-- Allows application to access Jouler Service and implement
-	 Jouler API methods -->
+        Jouler API methods -->
     <permission android:name="android.permission.ACCESS_JOULER"
-	android:permissionGroup="android.permission-group.SYSTEM_TOOLS"
-	android:label="@string/permlab_accessJouler"
-	android:description="@string/permdesc_accessJouler"
-	android:protectionLevel="signature|system|development" />
+        android:permissionGroup="android.permission-group.SYSTEM_TOOLS"
+        android:label="@string/permlab_accessJouler"
+        android:protectionLevel="dangerous"
+        android:description="@string/permdesc_accessJouler" />
 
     <!-- Allows an application to update application operation statistics. Not for
          use by third party apps. @hide -->

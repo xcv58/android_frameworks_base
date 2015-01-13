@@ -748,7 +748,7 @@ public class JoulerPolicyService extends IJoulerPolicy.Stub {
 	
 	//@Override
 	public byte[] getStatistics() throws RemoteException {
-		//mContext.enforceCallingPermission(android.Manifest.permission.ACCESS_JOULER, null);
+		enforceCallingPermission();
 		Parcel out = Parcel.obtain();
         	joulerStats.writeToParcel(out, 0);
         	byte[] data = out.marshall();
@@ -758,7 +758,7 @@ public class JoulerPolicyService extends IJoulerPolicy.Stub {
 
 	//@Override
 	public void controlCpuMaxFrequency(int freq) throws RemoteException {
-		//mContext.enforceCallingPermission(android.Manifest.permission.ACCESS_JOULER, null);
+		enforceCallingPermission();
 		try {
 			java.lang.Process cmd = new ProcessBuilder(new String[]{"sh","-c","/system/xbin/echo "+freq+" > sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq"})
 					.redirectErrorStream(true).start();
@@ -779,7 +779,7 @@ public class JoulerPolicyService extends IJoulerPolicy.Stub {
 	
 	//@Override
 	public int[] getAllCpuFrequencies() {
-		//mContext.enforceCallingPermission(android.Manifest.permission.ACCESS_JOULER, null);
+		enforceCallingPermission();
 		int[] cpu = new int[cpuFrequency.size()];
 		for(int i=0; i < cpuFrequency.size(); i++)
 			cpu[i] = cpuFrequency.get(i);
@@ -802,7 +802,7 @@ public class JoulerPolicyService extends IJoulerPolicy.Stub {
 	
 	//@Override
 	public void rateLimitForUid(int uid) throws RemoteException {
-		//mContext.enforceCallingPermission(android.Manifest.permission.ACCESS_JOULER, null);
+		enforceCallingPermission();
 		if (joulerStats == null || joulerStats.mUidArray.size() == 0 || joulerStats.mUidArray.indexOfKey(uid) < 0)
                         return;
 
@@ -841,8 +841,7 @@ public class JoulerPolicyService extends IJoulerPolicy.Stub {
 	//@Override
 	public void broadcastAlertIntent(List<String> badPackages, List<String> okayPackages, List<String> goodPackages)
 			throws RemoteException {
-		//mContext.enforceCallingPermission(android.Manifest.permission.ACCESS_JOULER, null);
-		//enforceCallingPermission();
+		enforceCallingPermission();
 		badPkgs = (ArrayList<String>) badPackages;
 		okayPkgs = (ArrayList<String>) okayPackages;
 		goodPkgs = (ArrayList<String>) goodPackages;
@@ -945,7 +944,7 @@ public class JoulerPolicyService extends IJoulerPolicy.Stub {
 
 	//@Override
 	public void resetPriority(int uid, int priority){
-		//mContext.enforceCallingPermission(android.Manifest.permission.ACCESS_JOULER, null);
+		enforceCallingPermission();
 		if (joulerStats == null || joulerStats.mUidArray.size() == 0 || joulerStats.mUidArray.indexOfKey(uid) < 0)
                         return;
 
