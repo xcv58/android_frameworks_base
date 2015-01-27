@@ -607,10 +607,10 @@ public class JoulerPolicyService extends IJoulerPolicy.Stub {
 			}
 			//check if we need to reset bandwidthRules
 			long currentBytes = TrafficStats.getTotalRxBytes() + TrafficStats.getTotalTxBytes();
-			if (currentBytes - (totalRx+totalTx)) > 699999999 {
+			if (currentBytes - (initialTx +initialRx)) > 699999999 {
 				bandwidthRules();
-				totalRx = TrafficStats.getTotalRxBytes();
-				totalTx = TrafficStats.getTotalTxBytes();
+				initialRx = TrafficStats.getTotalRxBytes();
+				initialTx = TrafficStats.getTotalTxBytes();
 			}
 		}
 		
