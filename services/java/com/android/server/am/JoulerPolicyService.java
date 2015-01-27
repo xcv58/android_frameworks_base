@@ -45,6 +45,7 @@ import android.content.IntentFilter;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.hardware.SensorManager;
+import android.net.TrafficStats;
 import android.os.BatteryManager;
 import android.os.BatteryStats;
 import android.os.Handler;
@@ -90,6 +91,9 @@ public class JoulerPolicyService extends IJoulerPolicy.Stub {
     private ArrayList<String> badPkgs;
     private ArrayList<String> okayPkgs;
     private ArrayList<String> goodPkgs;
+    private static List<Integer> rateLimitUids;
+    private static long initialRx = 0;
+    private static long initialTx = 0;
 
     private final static int GOOD_DELAY_TIME = 0;
     private final static int OKAY_DELAY_RATIO = 2;
@@ -164,30 +168,33 @@ public class JoulerPolicyService extends IJoulerPolicy.Stub {
 	
 	public void systemReady() {
 		IntentFilter intent = new IntentFilter();
-        intent.addAction(Intent.ACTION_BATTERY_CHANGED);
-        intent.addAction(Intent.ACTION_RESUME_ACTIVITY);
-        intent.addAction(Intent.ACTION_PAUSE_ACTIVITY);
-        mContext.registerReceiver(updateReceiver, intent);
-        mConnector = new NativeDaemonConnector(
-        new NetdCallbackReceiver(), "netd", 10, NETD_TAG, 160);
-        mThread = new Thread(mConnector, NETD_TAG);
-        final CountDownLatch connectedSignal = this.mConnectedSignal;
-        this.mThread.start();
-        try {
-        	connectedSignal.await();
-        } catch (InterruptedException e) {
-            // TODO Auto-generated catch block
-            Log.e(TAG,"Daemon Problem "+e.getMessage());
-        }
+        	intent.addAction(Intent.ACTION_BATTERY_CHANGED);
+        	intent.addAction(Intent.ACTION_RESUME_ACTIVITY);
+        	intent.addAction(Intent.ACTION_PAUSE_ACTIVITY);
+        	mContext.registerReceiver(updateReceiver, intent);
+        	mConnector = new NativeDaemonConnector(
+        	new NetdCallbackReceiver(), "netd", 10, NETD_TAG, 160);
+        	mThread = new Thread(mConnector, NETD_TAG);
+        	final CountDownLatch connectedSignal = this.mConnectedSignal;
+        	this.mThread.start();
+        	try {
+        		connectedSignal.await();
+        	} catch (InterruptedException e) {
+            		// TODO Auto-generated catch block
+            		Log.e(TAG,"Daemon Problem "+e.getMessage());
+        	}
 
 /***********/
 		prepareNativeDaemon();
 		
-        bandwidthRules();
-        if (!cpuFrequency.isEmpty())
-        	 return;
+        	bandwidthRules();
+		initialRx = TrafficStats.getTotalRxBytes();
+		initialTx = TrafficStats.getTotalTxBytes();
+
+        	if (!cpuFrequency.isEmpty())
+        		return;
         
-        try {
+        	try {
 			java.lang.Process cmd = new ProcessBuilder(new String[]{"sh","-c","/system/bin/cat  sys/devices/system/cpu/cpu0/cpufreq/scaling_available_frequencies"})
 					.redirectErrorStream(true).start();
 			InputStream in = cmd.getInputStream();
@@ -199,7 +206,7 @@ public class JoulerPolicyService extends IJoulerPolicy.Stub {
 		         	}
 			}
 		    
-		    in.close();
+		    	in.close();
 			Log.i(TAG, "Did i get all the frequencies, huh? "+ cpuFrequency.toString());
 		}catch (Exception e) {
 			Log.e(TAG, "Cpu info "+e.getMessage());
@@ -598,6 +605,13 @@ public class JoulerPolicyService extends IJoulerPolicy.Stub {
 		        joulerStats.mSystemStats.updateBackgroundDischargeRate(mStats.getDischargeAmountScreenOffSinceCharge());
 		        
 			}
+			//check if we need to reset bandwidthRules
+			long currentBytes = TrafficStats.getTotalRxBytes() + TrafficStats.getTotalTxBytes();
+			if (currentBytes - (totalRx+totalTx)) > 699999999 {
+				bandwidthRules();
+				totalRx = TrafficStats.getTotalRxBytes();
+				totalTx = TrafficStats.getTotalTxBytes();
+			}
 		}
 		
 	}
@@ -683,7 +697,7 @@ public class JoulerPolicyService extends IJoulerPolicy.Stub {
 				double cpu = getCpuEnergy(mUid, uSecTime, mPowerProfile);
 				double wakelock = getWakelockEnergy(mUid, uSecTime, mPowerProfile);
 				double mobileData = getMobileTrafficEnergy(mStats, mUid, mPowerProfile);
-                double wifiData = getWifiTrafficEnergy(mUid, mPowerProfile);
+                		double wifiData = getWifiTrafficEnergy(mUid, mPowerProfile);
 				double wifi = getWifiEnergy(mUid, uSecTime, mPowerProfile);
 				double sensor = getSensorEnergy(mUid, uSecTime, mPowerProfile, mContext);
 				double power = u.updateEnergy(cpu, wakelock, mobileData, wifiData, wifi, sensor, video, audio);
@@ -791,13 +805,21 @@ public class JoulerPolicyService extends IJoulerPolicy.Stub {
 		try {
 			if (!mBandwidthControlEnabled) return;
 			Log.i(TAG,"Setting bandwidth rules");
-            long quotaBytes = 999999999;
-            mConnector.execute("bandwidth", "setiquota", "wlan0", quotaBytes);
-	    mConnector.execute("bandwidth", "setiquota", "rmnet0", quotaBytes);
-            
-        } catch (NativeDaemonConnectorException e) {
-            throw e.rethrowAsParcelableException();
-        }
+  			mConnector.execute("bandwidth", "removeiquota", "wlan0");
+                        mConnector.execute("bandwidth", "removeiquota", "rmnet0");
+
+            		long quotaBytes = 999999999;
+            		mConnector.execute("bandwidth", "setiquota", "wlan0", quotaBytes);
+	    		mConnector.execute("bandwidth", "setiquota", "rmnet0", quotaBytes);
+        		if (rateLimitUids.size() > 0) {
+				for (int i=0; i < rateLimitUids.size(); i++){
+					int uid = list.get(i);
+					addRateLimitRule(uid);
+				}
+			}
+        	} catch (NativeDaemonConnectorException e) {
+            		throw e.rethrowAsParcelableException();
+        	}
 	}
 	
 	//@Override
@@ -810,9 +832,13 @@ public class JoulerPolicyService extends IJoulerPolicy.Stub {
 		if (uStats.getThrottle()) {
 			delRateLimitRule(uid);
 			uStats.setThrottle(false);
+			if (rateLimitUids.size() > 0 && rateLimitUids.contains(uid))
+				rateLimitUids.remove(uid);
 		}else {
 			addRateLimitRule(uid);
 			uStats.setThrottle(true);
+			if (rateLimitUids.size() == 0 || !rateLimitUids.contains(uid))
+			    rateLimitUids.add(uid);
 		}
 		
 		joulerStats.mUidArray.put(uid, uStats);
