@@ -7,10 +7,11 @@ import android.app.PendingIntent;
 
 interface IJoulerPolicy {
     byte[] getStatistics();
-    
+
     void controlCpuMaxFrequency(int freq);
     int[] getAllCpuFrequencies();
-    void rateLimitForUid(int uid);
+    void addRateLimitRule(int uid);
+    void delRateLimitRule(int uid);
     void broadcastAlertIntent(in List<String> badPackages, in List<String> okayPackages, in List<String> goodPackages);
     int getPriority(int uid);
     void resetPriority(int uid, int priority);

@@ -17866,12 +17866,13 @@ package android.os {
   }
 
   public abstract interface IJoulerPolicy implements android.os.IInterface {
+    method public abstract void addRateLimitRule(int) throws android.os.RemoteException;
     method public abstract void broadcastAlertIntent(java.util.List<java.lang.String>, java.util.List<java.lang.String>, java.util.List<java.lang.String>) throws android.os.RemoteException;
     method public abstract void controlCpuMaxFrequency(int) throws android.os.RemoteException;
+    method public abstract void delRateLimitRule(int) throws android.os.RemoteException;
     method public abstract int[] getAllCpuFrequencies() throws android.os.RemoteException;
     method public abstract int getPriority(int) throws android.os.RemoteException;
     method public abstract byte[] getStatistics() throws android.os.RemoteException;
-    method public abstract void rateLimitForUid(int) throws android.os.RemoteException;
     method public abstract void resetPriority(int, int) throws android.os.RemoteException;
     method public abstract void setDelayedTask(android.app.PendingIntent, int) throws android.os.RemoteException;
   }
@@ -17884,12 +17885,13 @@ package android.os {
   }
 
   public final class JoulerPolicy {
+    method public void addRateLimitRule(int);
     method public void broadcastAlertIntent(java.util.List<java.lang.String>, java.util.List<java.lang.String>, java.util.List<java.lang.String>);
     method public void controlCpuMaxFrequency(int);
+    method public void delRateLimitRule(int);
     method public int[] getAllCpuFrequencies();
     method public int getPriority(int);
     method public byte[] getStatistics() throws android.os.RemoteException;
-    method public void rateLimitForUid(int);
     method public void resetPriority(int, int);
     method public void setDelayedTask(android.app.PendingIntent, int);
   }
