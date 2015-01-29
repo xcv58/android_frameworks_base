@@ -796,27 +796,33 @@ public class JoulerPolicyService extends IJoulerPolicy.Stub {
 
     // }
 
-    public void delRateLimitRule(int uid) {
+    public void addRateLimitRule(int uid) {
         if (!checkForRateLimit(uid)) {
             return;
         }
+        UidStats uStats = joulerStats.mUidArray.get(uid);
+        if (uStats.getThrottle()) {
+            return;
+        }
         try {
-            mConnector.execute("bandwidth","removenaughtyapps", uid);
-            UidStats uStats = joulerStats.mUidArray.get(uid);
-            uStats.setThrottle(false);
+            mConnector.execute("bandwidth","addnaughtyapps", uid);
+            uStats.setThrottle(true);
         } catch (NativeDaemonConnectorException e) {
             throw e.rethrowAsParcelableException();
         }
     }
 
-    public void addRateLimitRule(int uid) {
+    public void delRateLimitRule(int uid) {
         if (!checkForRateLimit(uid)) {
             return;
         }
+        UidStats uStats = joulerStats.mUidArray.get(uid);
+        if (!uStats.getThrottle()) {
+            return;
+        }
         try {
-            mConnector.execute("bandwidth","addnaughtyapps", uid);
-            UidStats uStats = joulerStats.mUidArray.get(uid);
-            uStats.setThrottle(true);
+            mConnector.execute("bandwidth","removenaughtyapps", uid);
+            uStats.setThrottle(false);
         } catch (NativeDaemonConnectorException e) {
             throw e.rethrowAsParcelableException();
         }
@@ -846,7 +852,6 @@ public class JoulerPolicyService extends IJoulerPolicy.Stub {
         intent.putExtra("EXTRA_TIME", SystemClock.elapsedRealtime());
 
         mContext.sendStickyBroadcastAsUser(intent, UserHandle.OWNER);
-
     }
 
     public void setDelayedTask(PendingIntent pendingIntent, int maxDelayedTime) throws RemoteException {
