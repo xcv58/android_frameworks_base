@@ -86,6 +86,8 @@ public class JoulerPolicyService extends IJoulerPolicy.Stub {
 
     private Thread mThread;
     private CountDownLatch mConnectedSignal = new CountDownLatch(1);
+    private static long initialRx = 0;
+    private static long initialTx = 0;
 
 
     private ArrayList<String> badPkgs;
@@ -96,6 +98,8 @@ public class JoulerPolicyService extends IJoulerPolicy.Stub {
     private final static int GOOD_DELAY_TIME = 0;
     private final static int OKAY_DELAY_RATIO = 2;
     private final static int BAD_DELAY_RATIO = 1;
+    private final static long MAX_QUOTA = 1024 * 1024 * 1024;
+    // private final static long MAX_QUOTA = 4611686018427387904L;
 
     class NetdResponseCode {
         /* Keep in sync with system/netd/ResponseCode.h */
@@ -185,6 +189,10 @@ public class JoulerPolicyService extends IJoulerPolicy.Stub {
 
 /***********/
         prepareNativeDaemon();
+
+        bandwidthRules();
+        initialRx = TrafficStats.getTotalRxBytes();
+        initialTx = TrafficStats.getTotalTxBytes();
 
         if (!cpuFrequency.isEmpty())
             return;
@@ -524,6 +532,7 @@ public class JoulerPolicyService extends IJoulerPolicy.Stub {
 
     //for calculating latest energy details and updating the JoulerStats object
     public void updateStats() {
+        resetQuota();
         synchronized(joulerStats) {
             BatteryStatsImpl mStats = ActivityManagerService.self().mBatteryStatsService.getActiveStatistics();
             Context mContext =  ActivityManagerService.self().mContext;
@@ -777,34 +786,54 @@ public class JoulerPolicyService extends IJoulerPolicy.Stub {
         return cpu;
     }
 
-    //@Override
-    // public void rateLimitForUid(int uid) throws RemoteException {
-    //      enforceCallingPermission();
-    //      if (joulerStats == null || joulerStats.mUidArray.size() == 0 || joulerStats.mUidArray.indexOfKey(uid) < 0)
-    //                 return;
+    public void bandwidthRules() {
+        Log.i(TAG,"About to set bandwidth rules");
+        try {
+            if (!mBandwidthControlEnabled) return;
+            long quotaBytes = MAX_QUOTA;
+            Log.i(TAG,"Setting bandwidth quota for wlan0 to: " + quotaBytes);
+            mConnector.execute("bandwidth", "setiquota", "wlan0", quotaBytes);
+        } catch (NativeDaemonConnectorException e) {
+            throw e.rethrowAsParcelableException();
+        }
+    }
 
-    //      UidStats uStats = joulerStats.mUidArray.get(uid);
-    //      if (uStats.getThrottle()) {
-    //              delRateLimitRule(uid);
-    //              uStats.setThrottle(false);
-    //      }else {
-    //              addRateLimitRule(uid);
-    //              uStats.setThrottle(true);
-    //      }
 
-    //      joulerStats.mUidArray.put(uid, uStats);
-
-    // }
+    private void resetQuota() {
+        long currentBytes = TrafficStats.getTotalRxBytes() + TrafficStats.getTotalTxBytes();
+        if ((currentBytes - (initialTx + initialRx)) > (MAX_QUOTA / 2)) {
+            bandwidthRules();
+            initialRx = TrafficStats.getTotalRxBytes();
+            initialTx = TrafficStats.getTotalTxBytes();
+        }
+    }
 
     public void addRateLimitRule(int uid) {
+        if (uid == -1) {
+            Log.i(TAG,"experiment to set bandwidth rules");
+            try {
+                if (!mBandwidthControlEnabled) {
+                    Log.i(TAG,"Not enabled");
+                    return;
+                }
+                long quotaBytes = MAX_QUOTA;
+                Log.i(TAG,"Setting bandwidth quota to: " + quotaBytes);
+                mConnector.execute("bandwidth", "setiquota", "wlan0", quotaBytes);
+            } catch (NativeDaemonConnectorException e) {
+                throw e.rethrowAsParcelableException();
+            }
+            return;
+        }
+
         if (!checkForRateLimit(uid)) {
             return;
         }
         UidStats uStats = joulerStats.mUidArray.get(uid);
-        if (uStats.getThrottle()) {
-            return;
-        }
+        // if (uStats.getThrottle()) {
+        //     return;
+        // }
         try {
+            Log.i(TAG, "add ratelimit for: " + uid);
             mConnector.execute("bandwidth","addnaughtyapps", uid);
             uStats.setThrottle(true);
         } catch (NativeDaemonConnectorException e) {
@@ -813,14 +842,28 @@ public class JoulerPolicyService extends IJoulerPolicy.Stub {
     }
 
     public void delRateLimitRule(int uid) {
+        if (uid == -1) {
+            Log.i(TAG,"experiment to set bandwidth rules");
+            try {
+                if (!mBandwidthControlEnabled) {
+                    Log.i(TAG,"Not enabled");
+                    return;
+                }
+                mConnector.execute("bandwidth", "removeiquota", "wlan0");
+            } catch (NativeDaemonConnectorException e) {
+                throw e.rethrowAsParcelableException();
+            }
+        }
+
         if (!checkForRateLimit(uid)) {
             return;
         }
         UidStats uStats = joulerStats.mUidArray.get(uid);
-        if (!uStats.getThrottle()) {
-            return;
-        }
+        // if (!uStats.getThrottle()) {
+        //     return;
+        // }
         try {
+            Log.i(TAG, "del ratelimit for: " + uid);
             mConnector.execute("bandwidth","removenaughtyapps", uid);
             uStats.setThrottle(false);
         } catch (NativeDaemonConnectorException e) {
