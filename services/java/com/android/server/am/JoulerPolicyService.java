@@ -98,8 +98,7 @@ public class JoulerPolicyService extends IJoulerPolicy.Stub {
     private final static int GOOD_DELAY_TIME = 0;
     private final static int OKAY_DELAY_RATIO = 2;
     private final static int BAD_DELAY_RATIO = 1;
-    private final static long MAX_QUOTA = 1024 * 1024 * 1024;
-    // private final static long MAX_QUOTA = 4611686018427387904L;
+    private final static long MAX_QUOTA = 4611686018427387904L;
 
     class NetdResponseCode {
         /* Keep in sync with system/netd/ResponseCode.h */
