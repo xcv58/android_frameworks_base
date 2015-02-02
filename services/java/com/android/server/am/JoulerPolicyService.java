@@ -828,9 +828,6 @@ public class JoulerPolicyService extends IJoulerPolicy.Stub {
             return;
         }
         UidStats uStats = joulerStats.mUidArray.get(uid);
-        // if (uStats.getThrottle()) {
-        //     return;
-        // }
         try {
             Log.i(TAG, "add ratelimit for: " + uid);
             mConnector.execute("bandwidth","addnaughtyapps", uid);
@@ -858,9 +855,6 @@ public class JoulerPolicyService extends IJoulerPolicy.Stub {
             return;
         }
         UidStats uStats = joulerStats.mUidArray.get(uid);
-        // if (!uStats.getThrottle()) {
-        //     return;
-        // }
         try {
             Log.i(TAG, "del ratelimit for: " + uid);
             mConnector.execute("bandwidth","removenaughtyapps", uid);
