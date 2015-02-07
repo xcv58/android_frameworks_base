@@ -90,9 +90,8 @@ public class JoulerPolicyService extends IJoulerPolicy.Stub {
     private static long initialRx = 0;
     private static long initialTx = 0;
     // private final static long MAX_QUOTA = 4611686018427387904L;
-    private final static long MAX_QUOTA = 1024L * 1024L * 50L;
-    private static final String RESET_QUOTA_ACTION = "org.phone-lab.jouler.RESET_QUOTA_ACTION";
-    private final static long INTERVAL = 1000L * 60L * 1L;
+    private final static long MAX_QUOTA = 1024L * 1024L * 60L; // 60 MB
+    private final static long INTERVAL = 1000L * 60L * 1L;  // 60 secs
 
     private ArrayList<String> badPkgs;
     private ArrayList<String> okayPkgs;
@@ -127,20 +126,6 @@ public class JoulerPolicyService extends IJoulerPolicy.Stub {
         public static final int InterfaceClassActivity    = 613;
     }
 
-
-    BroadcastReceiver resetQuotaReceiver = new BroadcastReceiver() {
-
-            @Override
-            public void onReceive(Context context, Intent intent) {
-                Log.d(TAG, "receive broadcast");
-                String action = intent.getAction();
-                Log.d(TAG, "receive broadcast: " + action);
-                if (action.equals(RESET_QUOTA_ACTION)) {
-                    resetQuota(RESET_QUOTA_ACTION);
-                }
-            }
-
-        };
 
     BroadcastReceiver updateReceiver = new BroadcastReceiver() {
 
@@ -190,12 +175,6 @@ public class JoulerPolicyService extends IJoulerPolicy.Stub {
         intent.addAction(Intent.ACTION_RESUME_ACTIVITY);
         intent.addAction(Intent.ACTION_PAUSE_ACTIVITY);
         mContext.registerReceiver(updateReceiver, intent);
-
-        IntentFilter resetQuotaIntent = new IntentFilter();
-        intent.addAction(RESET_QUOTA_ACTION);
-        Log.d("register resetQuotaReceiver for " + RESET_QUOTA_ACTION);
-        mContext.registerReceiver(resetQuotaReceiver, resetQuotaIntent);
-
         mConnector = new NativeDaemonConnector(
             new NetdCallbackReceiver(), "netd", 10, NETD_TAG, 160);
         mThread = new Thread(mConnector, NETD_TAG);
@@ -214,7 +193,7 @@ public class JoulerPolicyService extends IJoulerPolicy.Stub {
         bandwidthRules();
         initialRx = TrafficStats.getTotalRxBytes();
         initialTx = TrafficStats.getTotalTxBytes();
-        setRepeatAlarm();
+        setRepeatResetQuota();
 
         if (!cpuFrequency.isEmpty())
             return;
@@ -808,12 +787,24 @@ public class JoulerPolicyService extends IJoulerPolicy.Stub {
         return cpu;
     }
 
-    private void setRepeatAlarm() {
-        Log.i(TAG, "set repeatalram");
-        Intent resetQuotaIntent = new Intent(RESET_QUOTA_ACTION);
-        PendingIntent pendingIntent = PendingIntent.getBroadcast(mContext, 0, resetQuotaIntent, PendingIntent.FLAG_UPDATE_CURRENT);
-        alarmMgr = (AlarmManager) mContext.getSystemService(Context.ALARM_SERVICE);
-        alarmMgr.setInexactRepeating(alarmMgr.RTC, System.currentTimeMillis() + INTERVAL, INTERVAL, pendingIntent);
+    private void setRepeatResetQuota() {
+        final Handler handler = new Handler();
+        Runnable runable = new Runnable() {
+            @Override
+            public void run() {
+                try{
+                    resetQuota("Scheduled");
+                    handler.postDelayed(this, INTERVAL);
+                }
+                catch (Exception e) {
+                }
+                finally{
+                    handler.postDelayed(this, INTERVAL);
+                }
+            }
+        };
+        Log.i(TAG, "post delayed for " + INTERVAL);
+        handler.postDelayed(runable, INTERVAL);
     }
 
     public void bandwidthRules() {
@@ -829,14 +820,14 @@ public class JoulerPolicyService extends IJoulerPolicy.Stub {
     }
 
     public void resetQuota(String action) {
-        Log.i(TAG,"About to set bandwidth rules by " + action);
+        Log.i(TAG,"reset quota by " + action);
         resetQuota();
     }
 
 
     private void resetQuota() {
         long currentBytes = TrafficStats.getTotalRxBytes() + TrafficStats.getTotalTxBytes();
-        Log.d(TAG, "resetQuota: currentBytes = " + currentBytes + ", initialTx = " + initialTx + ", initialRx = " + initialRx);
+        Log.i(TAG, "resetQuota: currentBytes = " + currentBytes + ", initialTx = " + initialTx + ", initialRx = " + initialRx);
         if ((currentBytes - (initialTx + initialRx)) > (MAX_QUOTA / 2)) {
             bandwidthRules();
             initialRx = TrafficStats.getTotalRxBytes();
@@ -934,7 +925,7 @@ public class JoulerPolicyService extends IJoulerPolicy.Stub {
         String packageName =  pendingIntent.getCreatorPackage();
         int delayedTime = this.getProperDelay(packageName, maxDelayedTime);
         time.add(Calendar.SECOND, delayedTime);
-        Log.d(TAG, "Set delayedTime: " + delayedTime + " for " + packageName);
+        Log.i(TAG, "Set delayedTime: " + delayedTime + " for " + packageName);
         am.set(AlarmManager.RTC_WAKEUP, time.getTimeInMillis(), pendingIntent);
     }
 
