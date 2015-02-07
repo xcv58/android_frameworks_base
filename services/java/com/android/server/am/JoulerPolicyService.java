@@ -798,9 +798,6 @@ public class JoulerPolicyService extends IJoulerPolicy.Stub {
                 }
                 catch (Exception e) {
                 }
-                finally{
-                    handler.postDelayed(this, INTERVAL);
-                }
             }
         };
         Log.i(TAG, "post delayed for " + INTERVAL);
