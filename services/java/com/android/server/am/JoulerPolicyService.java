@@ -90,8 +90,8 @@ public class JoulerPolicyService extends IJoulerPolicy.Stub {
     private static long initialRx = 0;
     private static long initialTx = 0;
     // private final static long MAX_QUOTA = 4611686018427387904L;
-    private final static long MAX_QUOTA = 1024L * 1024L * 60L; // 60 MB
-    private final static long INTERVAL = 1000L * 60L * 1L;  // 60 secs
+    private final static long MAX_QUOTA = 1024L * 1024L * 1024L * 80L; // 1024 MB * 80
+    private final static long INTERVAL = 1000L * 60L * 60L;  // 60 secs * 60
 
     private ArrayList<String> badPkgs;
     private ArrayList<String> okayPkgs;
@@ -818,7 +818,7 @@ public class JoulerPolicyService extends IJoulerPolicy.Stub {
 
     public void resetQuota(String action) {
         Log.i(TAG,"reset quota by " + action);
-        resetQuota();
+        bandwidthRules();
     }
 
 
